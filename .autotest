@@ -1,0 +1,10 @@
+Autotest.add_hook :reset do |at|
+  at.clear_mappings
+  at.add_mapping(/^(.*?)(_spec)?\.rb$/) { |filename, m|
+    if m[2]
+      filename
+    else
+      "#{m[1]}_spec.rb"
+    end
+  }
+end
