@@ -96,6 +96,7 @@ module SimpleModel
       def has_currency(*attrs)
         options = attrs.extract_options!
         attrs.each do |attr|
+          attr_reader attr
           define_reader_with_options(attr,options)
           define_method("#{attr.to_s}=") do |val|
             instance_variable_set("@#{attr}", val.to_currency)
@@ -123,7 +124,7 @@ module SimpleModel
       def has_dates(*attrs)
         options = attrs.extract_options!
         attrs.each do |attr|
-          attr_reader
+          attr_reader attr
           define_reader_with_options(attr,options)
           define_method("#{attr.to_s}=") do |val|
             instance_variable_set("@#{attr}", val.to_date)
@@ -137,7 +138,7 @@ module SimpleModel
       def has_times(*attrs)
         options = attrs.extract_options!
         attrs.each do |attr|
-          attr_reader
+          attr_reader attr
           define_reader_with_options(attr,options)
           define_method("#{attr.to_s}=") do |val|
 
