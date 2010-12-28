@@ -13,10 +13,10 @@ require 'jeweler'
 Jeweler::Tasks.new do |gem|
   # gem is a Gem::Specification... see http://docs.rubygems.org/read/chapter/20 for more options
   gem.name = "simple_model"
-  gem.homepage = "http://github.com/JoshMcKin/simple_model"
+  gem.homepage = "http://github.com/joshmckin/simple_model"
   gem.license = "MIT"
-  gem.summary = %Q{TODO: one-line summary of your gem}
-  gem.description = %Q{TODO: longer description of your gem}
+  gem.summary = %Q{Simpifies building tableless models or models backed by webservices}
+  gem.description = %Q{Simpifies building tableless models or models backed by webservices. Create data type specific attributes with default if values. Also, provides a simple error and validation api for non-rails 3 apps.}
   gem.email = "joshmckin@gmail.com"
   gem.authors = ["Joshua T. Mckinney"]
   # Include your dependencies below. Runtime dependencies are required when using your gem,
