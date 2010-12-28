@@ -104,5 +104,6 @@ require 'date'
     def to_b
       self > 0
     end
+
   end   
 end

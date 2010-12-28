@@ -99,7 +99,7 @@ module SimpleModel
           attr_reader attr
           define_reader_with_options(attr,options)
           define_method("#{attr.to_s}=") do |val|
-            instance_variable_set("@#{attr}", val.to_currency)
+            instance_variable_set("@#{attr}", val.to_s.to_currency)
             attributes[attr] = val
             val
           end

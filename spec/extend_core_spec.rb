@@ -61,4 +61,3 @@ describe ExtendCore, 'String.rb' do
   end
 
 end
-
