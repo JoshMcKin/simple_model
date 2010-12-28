@@ -18,9 +18,12 @@ RSpec.configure do |config|
 =======
 Spec::Runner.configure do |config|
 <<<<<<< HEAD
+<<<<<<< HEAD
 
 end
 =======
+=======
+>>>>>>> 0b9ea36884e581d9d11b7ba2ce650a5c27dd73be
 >>>>>>> d2384f09b6f2ac25fe4e128e1e2477c12b1d5d8b
   
 end
