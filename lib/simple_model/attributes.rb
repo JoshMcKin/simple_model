@@ -86,7 +86,7 @@ module SimpleModel
       def has_ints(*attrs)
         options = attrs.extract_options!
         attrs.each do |attr|
-          attr_accessor reader
+          attr_reader attr
           define_reader_with_options(attr,options)
 
           define_method("#{attr.to_s}=") do |val|             
