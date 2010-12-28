@@ -9,7 +9,12 @@ describe SimpleModel::Attributes do
     @init = TestInit.new(:test1 => "1", :test2 => '2')
   end
 
+<<<<<<< HEAD
+  it "should set provided attributes on initialize" do
+    
+=======
   it "should set provided attributes on initialize" do   
+>>>>>>> d2384f09b6f2ac25fe4e128e1e2477c12b1d5d8b
     @init.test1.should eql("1")
     @init.test2.should eql("2")
   end
