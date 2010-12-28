@@ -1,8 +1,4 @@
 module SimpleModel
-<<<<<<< HEAD
-
-=======
->>>>>>> d2384f09b6f2ac25fe4e128e1e2477c12b1d5d8b
   module Attributes
     include ExtendCore
  
@@ -54,20 +50,14 @@ module SimpleModel
     module ClassMethods
       def has_attributes(*attrs)
         attrs.each do |attr|
-<<<<<<< HEAD
-          attr_accessor attr
-          alias_name = fetch_alias_name
-          define_method("#{attr.to_s}=") do |val|
-            send(alias_name,val)
-            attributes[attr] = val
-=======
+
           attr_reader attr
   
           define_method("#{attr.to_s}=") do |val|
             instance_variable_set("@#{attr}", val)
             attributes[attr] = val
             val
->>>>>>> d2384f09b6f2ac25fe4e128e1e2477c12b1d5d8b
+
           end
         end
       end
@@ -76,22 +66,14 @@ module SimpleModel
       def has_booleans(*attrs)
         options = attrs.extract_options!
         attrs.each do |attr|
-<<<<<<< HEAD
-          attr_accessor attr
-          define_reader_with_options(attr,options)
 
-          alias_name = fetch_alias_name
-          define_method("#{attr.to_s}=") do |val|
-            send(alias_name,val.to_s.to_b)
-            attributes[attr] = val
-=======
           attr_reader attr
           define_reader_with_options(attr,options)  
           define_method("#{attr.to_s}=") do |val|
             instance_variable_set("@#{attr}", val.to_s.to_b)
             attributes[attr] = val
             val
->>>>>>> d2384f09b6f2ac25fe4e128e1e2477c12b1d5d8b
+
           end
 
           define_method ("#{attr.to_s}?") do
@@ -104,20 +86,14 @@ module SimpleModel
       def has_ints(*attrs)
         options = attrs.extract_options!
         attrs.each do |attr|
-          attr_accessor attr
+          attr_accessor reader
           define_reader_with_options(attr,options)
-<<<<<<< HEAD
- 
-          alias_name = fetch_alias_name
-          define_method("#{attr.to_s}=") do |val|
-            send(alias_name,val.to_i)
-            attributes[attr] = val
-=======
+
           define_method("#{attr.to_s}=") do |val|             
             instance_variable_set("@#{attr}", val.to_i)
             attributes[attr] = val
             val
->>>>>>> d2384f09b6f2ac25fe4e128e1e2477c12b1d5d8b
+
           end
         end
       end
@@ -126,20 +102,13 @@ module SimpleModel
       def has_currency(*attrs)
         options = attrs.extract_options!
         attrs.each do |attr|
-<<<<<<< HEAD
-          define_reader_with_options(attr,options)
-          alias_name = fetch_alias_name
-          define_method("#{attr.to_s}=") do |val|
-            send(alias_name,val.to_currency)
-            attributes[attr] = val
-=======
           attr_reader attr
           define_reader_with_options(attr,options)
           define_method("#{attr.to_s}=") do |val|
             instance_variable_set("@#{attr}", val.to_s.to_currency)
             attributes[attr] = val
             val
->>>>>>> d2384f09b6f2ac25fe4e128e1e2477c12b1d5d8b
+
           end
         end
       end
@@ -147,13 +116,7 @@ module SimpleModel
       def has_floats(*attrs)
         options = attrs.extract_options!
         attrs.each do |attr|
-<<<<<<< HEAD
-          define_reader_with_options(attr,options)
-          alias_name = fetch_alias_name
-          define_method("#{attr.to_s}=") do |val|
-            send(alias_name,val.to_f)
-            attributes[attr] = val
-=======
+
           attr_reader attr
           define_reader_with_options(attr,options)
 
@@ -161,7 +124,7 @@ module SimpleModel
             instance_variable_set("@#{attr}", val.to_f)
             attributes[attr] = val
             val
->>>>>>> d2384f09b6f2ac25fe4e128e1e2477c12b1d5d8b
+
           end
         end
       end
@@ -170,20 +133,14 @@ module SimpleModel
       def has_dates(*attrs)
         options = attrs.extract_options!
         attrs.each do |attr|
-<<<<<<< HEAD
-          define_reader_with_options(attr,options)
-          alias_name = fetch_alias_name
-          define_method("#{attr.to_s}=") do |val|
-            send(alias_name,val.to_date)
-            attributes[attr] = val
-=======
+
           attr_reader attr
           define_reader_with_options(attr,options)
           define_method("#{attr.to_s}=") do |val|
             instance_variable_set("@#{attr}", val.to_date)
             attributes[attr] = val
             val
->>>>>>> d2384f09b6f2ac25fe4e128e1e2477c12b1d5d8b
+
           end
         end
       end
@@ -192,13 +149,7 @@ module SimpleModel
       def has_times(*attrs)
         options = attrs.extract_options!
         attrs.each do |attr|
-<<<<<<< HEAD
-          define_reader_with_options(attr,options)
-          alias_name = fetch_alias_name
-          define_method("#{attr.to_s}=") do |val|
-            send(alias_name,val.to_time)
-            attributes[attr] = val
-=======
+
           attr_reader attr
           define_reader_with_options(attr,options)
           define_method("#{attr.to_s}=") do |val|
@@ -206,20 +157,15 @@ module SimpleModel
             instance_variable_set("@#{attr}", val.to_time)
             attributes[attr] = val
             val
->>>>>>> d2384f09b6f2ac25fe4e128e1e2477c12b1d5d8b
           end
         end
       end
 
-<<<<<<< HEAD
-      def fetch_alias_name
-        alias_name = (attr.to_s << "_old=").to_sym
-         self.class_eval("alias #{alias_name} #{attr}=")
-=======
+
       def fetch_alias_name(attr)
         alias_name = (attr.to_s << "_old=").to_sym
          self.module_eval("alias #{alias_name} #{attr}")
->>>>>>> d2384f09b6f2ac25fe4e128e1e2477c12b1d5d8b
+
          alias_name
       end
 
