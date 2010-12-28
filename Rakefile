@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 require 'rubygems'
 require 'bundler'
 begin
@@ -48,3 +49,7 @@ Rake::RDocTask.new do |rdoc|
   rdoc.rdoc_files.include('README*')
   rdoc.rdoc_files.include('lib/**/*.rb')
 end
+=======
+require 'bundler'
+Bundler::GemHelper.install_tasks
+>>>>>>> d2384f09b6f2ac25fe4e128e1e2477c12b1d5d8b

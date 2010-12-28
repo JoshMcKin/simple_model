@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # rcov generated
 coverage
 
@@ -40,3 +41,10 @@ pkg
 #
 # For vim:
 #*.swp
+=======
+pkg/*
+*.gem
+.bundle
+.DS_Store
+nbproject/
+>>>>>>> d2384f09b6f2ac25fe4e128e1e2477c12b1d5d8b

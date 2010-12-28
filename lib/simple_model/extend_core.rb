@@ -1,5 +1,10 @@
 module ExtendCore
+<<<<<<< HEAD
 
+=======
+require 'time'
+require 'date'
+>>>>>>> d2384f09b6f2ac25fe4e128e1e2477c12b1d5d8b
   Float.class_eval do
     def round_to(precision)
       split = precision.to_s.split(".")
@@ -40,6 +45,10 @@ module ExtendCore
 
   #Extend Ruby String.rb
   String.class_eval do
+<<<<<<< HEAD
+=======
+
+>>>>>>> d2384f09b6f2ac25fe4e128e1e2477c12b1d5d8b
     # to_b => to_boolean
     def to_b
       ['1',"true", "t"].include?(self)
