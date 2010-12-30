@@ -1,14 +1,14 @@
 = simple_model
 
-Installation
-------------
+== Installation
 
-SimpleModel is available through [Rubygems](http://rubygems.org/gems/simple_model) and can be installed via:
+
+SimpleModel is available through [!Rubygems](http://rubygems.org/gems/simple_model) and can be installed via:
 
     $ gem install simple_model
 
-Usage
------
+== Usage
+
       require 'simple_model'
 
         class Item < SimpleModel::Base
@@ -41,3 +41,5 @@ Usage
 Copyright (c) 2010 Joshua T. Mckinney. See LICENSE.txt for
 further details.
 
+== Credit
+* Code based on Rails/ActiveRecord and Appoxy/SimpleRecord: https://github.com/appoxy/simple_record
