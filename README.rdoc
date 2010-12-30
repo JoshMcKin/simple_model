@@ -1,6 +1,30 @@
 = simple_model
 
-Testing
+Installation
+------------
+
+SimpleModel is available through [Rubygems](http://rubygems.org/gems/simple_model) and can be installed via:
+
+    $ gem install simple_model
+
+Usage
+-----
+      require 'simple_model'
+
+        class Item < SimpleModel::Base
+          has_booleans :active
+          has_currency :total_amount_due
+
+          private
+          def validate
+            validates_presence_of :total_amount_due
+          end
+        end
+        
+        item = Item.new
+        item.active = true
+        item.total_amount_due = "$5.00" # time.total_amount_due => 5.0
+
 
 == Contributing to simple_model
  

@@ -61,6 +61,6 @@ module SimpleModel
       return true unless ((options[:if].blank? && options[:unless].blank?) ||
           !options[:if].blank? && send(options[:if])) ||
         (!options[:unless].blank? && !send(options[:unless]))
-    end
+    end 
   end
 end

@@ -1,5 +1,4 @@
 module ExtendCore
-
 require 'time'
 require 'date'
 
