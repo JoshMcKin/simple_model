@@ -3,7 +3,7 @@
 == Installation
 
 
-SimpleModel is available through [!Rubygems](http://rubygems.org/gems/simple_model) and can be installed via:
+SimpleModel is available through [![Rubygems]](http://rubygems.org/gems/simple_model) and can be installed via:
 
     $ gem install simple_model
 
