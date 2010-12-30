@@ -27,7 +27,7 @@ SimpleModel is available through [Rubygems](http://rubygems.org/gems/simple_mode
 
 ### Validation and Errors only
 
-require 'simple_model'
+     require 'simple_model'
 
         class Item
           include SimpleModel::Validation
@@ -46,7 +46,7 @@ require 'simple_model'
 
 ### Validation Only - helpful if your class already has an errors object, but lacks built in validation
 
-require 'simple_model'
+     require 'simple_model'
 
         class Item < SimpleRecord::Base
           include SimpleModel::Validation
