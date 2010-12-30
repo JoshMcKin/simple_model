@@ -12,18 +12,25 @@ SimpleModel is available through [Rubygems](http://rubygems.org/gems/simple_mode
       require 'simple_model'
 
         class Item < SimpleModel::Base
-          has_booleans :active
-          has_currency :total_amount_due
+          has_booleans :active, :default => true
+          has_booleans :paid
+          has_currency :price, :default => 10.0
+          has_dates :created_at
 
           private
           def validate
-            validates_presence_of :total_amount_due
+            validates_inclusion_of :price, :in => 10..25
           end
         end
         
-        item = Item.new
-        item.active = true
-        item.total_amount_due = "$5.00" # time.total_amount_due => 5.0
+        item = Item.new(:created_at => "12/30/2010")
+        item.created_at # => #<Date: 2010-12-30 (4911121/2,0,2299161)>
+        item.active     # => true
+        item.paid       # => nil
+        item.paid?      # => false
+        item.price      # => 10.0
+        item.price = '$1,024.00'
+        item.price      # => 1024.0
 
 ### Validation and Errors only
 
