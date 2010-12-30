@@ -38,7 +38,7 @@ module SimpleModel
     end
 
     def errors_for_flash
-      error_string = ""
+      error_string = "<div id='smErrorExplanation'>#{errors.count} errors prevented saving.</div>"
       errors.full_messages.each do |m|
         error_string << "<div>#{m}</div>"
       end
