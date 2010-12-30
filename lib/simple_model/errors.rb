@@ -74,7 +74,7 @@ module SimpleModel
         full_messages = []
         errors.each do |error|
           error[1].each do |message|
-            full_messages << "#{error[0].titleize} #{message}"
+            full_messages << "#{error[0].to_s} #{message}"
           end
         end
         full_messages

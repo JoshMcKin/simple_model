@@ -31,6 +31,7 @@ SimpleModel is available through [Rubygems](http://rubygems.org/gems/simple_mode
         item.price      # => 10.0
         item.price = '$1,024.00'
         item.price      # => 1024.0
+        item.valid?     # => false
 
 ### Validation and Errors only
 
