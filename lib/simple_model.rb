@@ -4,6 +4,8 @@ module SimpleModel
   autoload :Attributes, "simple_model/attributes"
   autoload :Errors, "simple_model/errors"
   autoload :Validation, "simple_model/validation"
+
+  # require active_model if available
   begin
     require 'active_model'
   rescue LoadError
