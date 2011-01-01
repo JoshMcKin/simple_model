@@ -1,4 +1,8 @@
 # SimpleModel
+A collection of convenience methods for building table-less models. If ActiveModel
+gem is installed, SimpleModel::Based will include ActiveModel::Validations,
+include ActiveModel::Conversion and extend ActiveModel::Naming. If ActiveModel
+gem is not available, SimpleModel defaults to its own built-in Error and Validation modules.
 
 ## Installation
 
