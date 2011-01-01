@@ -1,16 +1,12 @@
 module SimpleModel
   module Attributes
     include ExtendCore
- 
 
     #Set attribute values to those supplied at initialization
     def initialize(*attrs)
-      attrs.extract_options!.each do |attr|
-        self.send(("#{attr[0]}=").to_sym, attr[1])
-      end
+      set_attributes(attrs.extract_options!)
     end
 
-    ############## Pseudo Rails Methods ###############
     def id
       @id
     end
@@ -19,11 +15,13 @@ module SimpleModel
       @id=id
     end
 
-    # Defaults to true so rails will create a "new" form
-    # Set to false and rails will produce an "edit" form
     def new_record
       @new_record = true if @new_record.nil?
       @new_record
+    end
+
+    def persisted?
+      !new_record
     end
 
     def new_record?
@@ -31,16 +29,22 @@ module SimpleModel
     end
     
     def new_record=(new_record)
-      @new_record = new_record.to_b
+      @new_record = new_record
     end
-
-    ############### End Pseudo Rails Methods ##############
 
     # Place to store set attributes and their values
     def attributes
       @attributes ||= {}
       @attributes
     end
+
+    def set_attributes(attrs)
+      attrs.each do |attr|
+        self.send("#{attr[0].to_sym}=",attr[1])
+      end
+    end
+
+    alias :update_attributes :set_attributes
 
 
     def self.included(base)
@@ -164,9 +168,9 @@ module SimpleModel
 
       def fetch_alias_name(attr)
         alias_name = (attr.to_s << "_old=").to_sym
-         self.module_eval("alias #{alias_name} #{attr}")
+        self.module_eval("alias #{alias_name} #{attr}")
 
-         alias_name
+        alias_name
       end
 
       # Defines a reader method that returns a default value if current value
