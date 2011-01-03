@@ -1,11 +1,12 @@
 module SimpleModel
 
   module Errors
+    include ErrorHelpers
+
     def errors
       @errors ||= ErrorsHash.new
       @errors
     end
-
 
     def valid?
       self.errors.clear if errors
@@ -13,11 +14,7 @@ module SimpleModel
       self.errors.blank? || self.errors.empty?
     end
 
-    def errors?
-      !self.errors.nil? && !errors.empty?
-    end
-
-
+ 
     def errors_on(attr)
       self.valid?
       [self.errors.on(attr.to_s)].flatten.compact
@@ -25,24 +22,8 @@ module SimpleModel
 
     alias :error_on :errors_on
 
-    def errors_to_s
-      error_string = ""
-      self.errors.full_messages.each do |m|
-        error_string << "#{m} "
-      end
-      error_string
-    end
-
     def validate
       # Override to implement validation
-    end
-
-    def errors_for_flash
-      error_string = "<div id='smErrorExplanation'>#{errors.count} errors prevented saving.</div>"
-      errors.full_messages.each do |m|
-        error_string << "<div>#{m}</div>"
-      end
-      error_string
     end
 
     class ErrorsHash
