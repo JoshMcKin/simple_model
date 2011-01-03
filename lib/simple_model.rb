@@ -3,7 +3,7 @@ module SimpleModel
   autoload :ExtendCore, "simple_model/extend_core"
   autoload :Attributes, "simple_model/attributes"
   autoload :Errors, "simple_model/errors"
-  autoloan :ErrorHelpers, "simple_model/error_helpers"
+  autoload :ErrorHelpers, "simple_model/error_helpers"
   autoload :Validation, "simple_model/validation"
 
   # require active_model if available
