@@ -34,9 +34,9 @@ module SimpleModel
     
         att_method = send(attr)
         unless att_method.blank?
-          errors.add(attr,(options[:message].blank? ? "must equal #{options[:equal]} characters in length." : options[:message]))  if options[:equal] && att_method.to_s.length != options[:equal]
-          errors.add(attr,(options[:message].blank? ? "cannot have more than #{options[:max]} characters in length." : options[:message]))  if options[:max] && att_method.to_s.length > options[:max]
-          errors.add(attr,(options[:message].blank? ? "cannot have less than #{options[:min]} characters in length." : options[:message]))  if options[:min] && att_method.to_s.length < options[:min]
+          errors.add(attr,(options[:message].blank? ? "must equal #{options[:is]} characters in length." : options[:message]))  if options[:is] && att_method.to_s.length != options[:is]
+          errors.add(attr,(options[:message].blank? ? "cannot have more than #{options[:maximum]} characters in length." : options[:message]))  if options[:maximum] && att_method.to_s.length > options[:maximum]
+          errors.add(attr,(options[:message].blank? ? "cannot have less than #{options[:minimum]} characters in length." : options[:message]))  if options[:minimum] && att_method.to_s.length < options[:minimum]
         end
       end
     end
