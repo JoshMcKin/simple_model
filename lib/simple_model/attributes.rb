@@ -53,10 +53,11 @@ module SimpleModel
  
     module ClassMethods
       def has_attributes(*attrs)
+        options = attrs.extract_options!
         attrs.each do |attr|
 
           attr_reader attr
-  
+          define_reader_with_options(attr,options)
           define_method("#{attr.to_s}=") do |val|
             instance_variable_set("@#{attr}", val)
             attributes[attr] = val

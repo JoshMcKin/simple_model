@@ -25,4 +25,5 @@ module SimpleModel
       include SimpleModel::Validation
     end    
   end
+
 end

@@ -26,6 +26,7 @@ module SimpleModel
         end
       end
     end
+    
     def validates_length_of(*attr_names)
       options = attr_names.extract_options!
 
