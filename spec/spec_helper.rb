@@ -1,7 +1,7 @@
 $LOAD_PATH.unshift(File.join(File.dirname(__FILE__), '..', 'lib'))
 $LOAD_PATH.unshift(File.dirname(__FILE__))
 require 'simple_model'
-require 'spec'
+require 'rspec'
 
 
 
@@ -10,7 +10,7 @@ require 'spec'
 Dir["#{File.dirname(__FILE__)}/support/**/*.rb"].each {|f| require f}
 
 
-Spec::Runner.configure do |config|
+RSpec.configure do |config|
 
 
 end
