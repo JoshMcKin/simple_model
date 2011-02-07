@@ -1,6 +1,6 @@
 module ExtendCore
-require 'time'
-require 'date'
+  require 'time'
+  require 'date'
 
   Float.class_eval do
     def round_to(precision)
@@ -12,6 +12,22 @@ require 'date'
     # Round to nearest cent
     def to_currency
       round_to(0.01)
+    end
+
+    #Returns string with representation of currency
+    def to_currency_s(symbol="$")
+      num = "#{self.to_currency}"
+      num << "." unless num.include?(".")
+      while num.index('.') != (num.length-3)
+        num << '0'
+      end
+      comma = 6
+      while num.length > (comma)
+        num.insert((num.length - comma), ",")
+        comma += 4
+      end
+      num.insert(0,symbol)
+      num
     end
   end
 
