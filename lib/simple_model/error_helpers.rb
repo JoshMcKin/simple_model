@@ -8,7 +8,7 @@ module SimpleModel
     def errors_for_flash(failed_action="saving")
 
       error_string = "<div id='smErrorExplanation'><h2>#{self.errors.count}"
-      if self.errors.lenght > 1 
+      if self.errors.length > 1
         error_string << " errors"
       else
         error_string << " error"
