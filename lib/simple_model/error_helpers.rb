@@ -5,11 +5,20 @@ module SimpleModel
       !self.errors.nil? && !self.errors.empty?
     end
 
-    def errors_for_flash
-      error_string = "<div id='smErrorExplanation'>#{self.errors.count} errors prevented saving.</div>"
-      self.errors.full_messages.each do |m|
-        error_string << "<div>#{m}</div>"
+    def errors_for_flash(failed_action="saving")
+
+      error_string = "<div id='smErrorExplanation'><h2>#{self.errors.count}"
+      if self.errors.lenght > 1 
+        error_string << " errors"
+      else
+        error_string << " error"
       end
+      error_string << " prevented #{failed_action}.</h2><ul>"
+
+      self.errors.full_messages.each do |m|
+        error_string << "<li>#{m}</li>"
+      end
+      error_string << "</ul></div>"
       error_string
     end
   
