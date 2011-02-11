@@ -7,9 +7,9 @@ module SimpleModel
 
     def errors_for_flash(options={})
       options[:failed_action] ||= "saving"
-      options[:div_id] ||= 'errorExplanation'
-      options[:div_classes] ||= ''
-      error_string = "<div id='#{options[:div_id]}' class='#{options[:div_classes]}'><h2>#{self.errors.count}"
+      options[:id] ||= 'errorExplanation'
+      options[:classes] ||= ''
+      error_string = "<div id='#{options[:id]}' class='#{options[:classes]}'><h2>#{self.errors.count}"
       if self.errors.length > 1
         error_string << " errors"
       else
