@@ -83,4 +83,20 @@ describe ExtendCore, 'String.rb' do
     end
   end
 
+  describe ExtendCore, 'parse_name' do
+    it "return return hash with name elements properly keyed" do
+      hash = "Doe, John C.".parse_name
+      hash[:first_name].should eql("John")
+      hash[:last_name].should eql("Doe")
+
+      hash = "John Doe".parse_name
+      hash[:first_name].should eql("John")
+      hash[:last_name].should eql("Doe")
+
+      hash = "Mr. John C. Doe Jr".parse_name
+      hash[:first_name].should eql("John")
+      hash[:last_name].should eql("Doe")
+
+    end
+  end
 end

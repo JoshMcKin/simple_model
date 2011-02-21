@@ -1,3 +1,4 @@
+
 module ExtendCore
   require 'time'
   require 'date'
@@ -124,7 +125,15 @@ module ExtendCore
     #   +seperate_middle_name+ defaults to true. if false, will combine middle name into last name.
 
     def parse_name(seperate_middle_name=true)
-      parts = self.split # First, split the name into an array
+      str = self
+      if str.include?(',') # Rearrange names formatted as Doe, John C. to John C. Doe
+      temp = str.split(',')
+      temp << temp[0]
+      temp.delete_at(0)
+      str = temp.join(" ")
+
+      end
+      parts = str.split # First, split the name into an array
 
       parts.each_with_index do |part, i|
         # If any part is "and", then put together the two parts around it
@@ -136,7 +145,7 @@ module ExtendCore
 
       { :prefix      => (parts.shift if parts[0]=~/^\w+\./),
         :first_name  =>  parts.shift || "", # if name is "", then atleast first_name should be ""
-        :suffix      => (parts.pop   if parts[-1]=~/(\w+\.|[IVXLM]+|[A-Z]+\.)$/),
+        :suffix      => (parts.pop   if parts[-1]=~/(\w+\.|[IVXLM]+|[A-Z]+\.|(?i)jr|(?i)sr )$/),
         :last_name   => (seperate_middle_name ? parts.pop : parts.slice!(0..-1) * " "),
         :middle_name => (parts * " " unless parts.empty?) }
     end
