@@ -114,7 +114,32 @@ module ExtendCore
     def to_currency
       to_f.to_currency
     end
+
     
+    # Parse a full name into it's parts. http://pastie.org/867415
+    # Based on :http://artofmission.com/articles/2009/5/31/parse-full-names-with-ruby
+    #
+    # Options:
+    #   +name+
+    #   +seperate_middle_name+ defaults to true. if false, will combine middle name into last name.
+
+    def parse_name(seperate_middle_name=true)
+      parts = self.split # First, split the name into an array
+
+      parts.each_with_index do |part, i|
+        # If any part is "and", then put together the two parts around it
+        # For example, "Mr. and Mrs." or "Mickey and Minnie"
+        if part=~/^(and|&)$/i && i > 0
+          parts[i-1] = [parts.delete_at(i+1), parts.at(i).downcase, parts.delete_at(i-1)].reverse * " "
+        end
+      end if self=~/\s(and|&)\s/i # optimize
+
+      { :prefix      => (parts.shift if parts[0]=~/^\w+\./),
+        :first_name  =>  parts.shift || "", # if name is "", then atleast first_name should be ""
+        :suffix      => (parts.pop   if parts[-1]=~/(\w+\.|[IVXLM]+|[A-Z]+\.)$/),
+        :last_name   => (seperate_middle_name ? parts.pop : parts.slice!(0..-1) * " "),
+        :middle_name => (parts * " " unless parts.empty?) }
+    end
   end
   Fixnum.class_eval do
     #Any value greater than 0 is true
