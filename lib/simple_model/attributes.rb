@@ -1,18 +1,15 @@
 module SimpleModel
+  # require all that active support we know and love
+  require 'active_support/core_ext/array/extract_options'
+  require 'active_support/core_ext/object/blank'
+  
   module Attributes
     include ExtendCore
 
+    attr_accessor :id, :saved
     #Set attribute values to those supplied at initialization
     def initialize(*attrs)
       set_attributes(attrs.extract_options!)
-    end
-
-    def id
-      @id
-    end
-
-    def id=(id)
-      @id=id
     end
 
     def new_record
@@ -20,16 +17,16 @@ module SimpleModel
       @new_record
     end
 
-    def persisted?
-      !new_record
-    end
-
     def new_record?
       new_record
     end
-    
+
     def new_record=(new_record)
       @new_record = new_record
+    end
+
+    def persisted?
+      saved.to_b
     end
 
     # Place to store set attributes and their values
@@ -52,6 +49,8 @@ module SimpleModel
     end
  
     module ClassMethods
+
+      #creates setter and getter datatype special attribute
       def has_attributes(*attrs)
         options = attrs.extract_options!
         attrs.each do |attr|
@@ -86,6 +85,7 @@ module SimpleModel
           end
         end
       end
+     alias :has_boolean :has_booleans
 
       # Creates setter and getter methods for integer attributes
       def has_ints(*attrs)
@@ -102,8 +102,12 @@ module SimpleModel
           end
         end
       end
+      alias :has_int :has_ints
 
-      # Creates setter and getter methods for float attributes
+      # Creates setter and getter methods for currency attributes
+      # attributes are cast to BigDecimal and rounded to nearest cent
+      # Warning, rounding occurs on all sets, so if you need to keep higher prescsion
+      # use has_decimals
       def has_currency(*attrs)
         options = attrs.extract_options!
         attrs.each do |attr|
@@ -113,10 +117,24 @@ module SimpleModel
             instance_variable_set("@#{attr}", val.to_s.to_currency)
             attributes[attr] = val
             val
-
           end
         end
       end
+
+      def has_decimals(*attrs)
+        options = attrs.extract_options!
+        attrs.each do |attr|
+          attr_reader attr
+          define_reader_with_options(attr,options)
+          define_method("#{attr.to_s}=") do |val|
+            instance_variable_set("@#{attr}", BigDecimal("#{val}"))
+            attributes[attr] = val
+            val
+          end
+        end
+      end
+      alias :has_decimal :has_decimals
+
       # Creates setter and getter methods for float attributes
       def has_floats(*attrs)
         options = attrs.extract_options!
@@ -133,7 +151,7 @@ module SimpleModel
           end
         end
       end
-
+      alias :has_float :has_floats
       # Creates setter and getter methods for date attributes
       def has_dates(*attrs)
         options = attrs.extract_options!
@@ -149,7 +167,7 @@ module SimpleModel
           end
         end
       end
-
+      alias :has_date :has_dates
       # Creates setter and getter methods for time attributes
       def has_times(*attrs)
         options = attrs.extract_options!

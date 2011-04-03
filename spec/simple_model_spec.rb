@@ -30,16 +30,16 @@ describe SimpleModel do
   end
 end
 
-describe SimpleModel::Errors do
-  it 'Should add a error setter' do
-    class TestError
-      include SimpleModel::Errors
-      attr_accessor :test_attr
-    end
-    a = TestError.new(self)
-    a.errors.add(:test_attr, "test")
-    a.errors?.should be_true
-
-    #a.test.should be_false
-  end
-end
+#describe SimpleModel::Errors do
+#  it 'Should add a error setter' do
+#    class TestError
+#      include SimpleModel::Errors
+#      attr_accessor :test_attr
+#    end
+#    a = TestError.new(self)
+#    a.errors.add(:test_attr, "test")
+#    a.errors?.should be_true
+#
+#    #a.test.should be_false
+#  end
+#end
