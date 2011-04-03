@@ -13,7 +13,11 @@ Gem::Specification.new do |s|
   s.summary     = %q{Simpifies building tableless models or models backed by webservices}
   s.description = %q{Simpifies building tableless models or models backed by webservices. Create data type specific attributes with default if values. Also, provides a simple error and validation api for non-rails 3 apps.}
 
-  s.add_development_dependency 'rspec', ' 2.4.0'
+  #s.add_runtime_dependency 'active_support','3.0.5'
+  s.add_runtime_dependency 'active_model','3.0.5'
+
+  s.add_development_dependency 'rspec'
+
   s.rubyforge_project = "simple_model"
 
   s.files         = `git ls-files`.split("\n")

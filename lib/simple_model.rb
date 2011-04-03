@@ -1,29 +1,18 @@
 module SimpleModel
 
+  #Get those rails goodies
+  require 'active_support'
+  require 'active_support/i18n'
+  require 'active_model'
+
+  # Load as necessary
   autoload :ExtendCore, "simple_model/extend_core"
   autoload :Attributes, "simple_model/attributes"
-  autoload :Errors, "simple_model/errors"
   autoload :ErrorHelpers, "simple_model/error_helpers"
-  autoload :Validation, "simple_model/validation"
+  autoload :Validation, "simple_model/validation"  
+  autoload :Base, "simple_model/base"
 
-  # require active_model if available
-  begin
-    require 'active_model'
-  rescue LoadError
-    #Don't fail
-  end
-
-  class Base
-    include SimpleModel::Attributes
-    include SimpleModel::ErrorHelpers
-    begin
-      include ActiveModel::Validations
-      include ActiveModel::Conversion
-      extend ActiveModel::Naming
-    rescue NameError
-      include SimpleModel::Errors
-      include SimpleModel::Validation
-    end    
-  end
+  #Railtie
+  require 'simple_model/simple_model_railtie.rb' if defined?(Rails)
 
 end
