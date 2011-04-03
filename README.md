@@ -34,45 +34,9 @@ SimpleModel is available through [Rubygems](http://rubygems.org/gems/simple_mode
         item.paid?      # => false
         item.price      # => 10.0
         item.price = '$1,024.00'
-        item.price      # => 1024.0
+        item.price      # => #<BigDecimal:100c989d8,'0.1024E4',9(27)>
         item.valid?     # => false
 
-### Validation and Errors only
-
-     require 'simple_model'
-
-        class Item
-          include SimpleModel::Validation
-          include SimpleModel::Errors
-
-          attr_accessor :foo
-
-          private
-          def validate
-            validates_presence_of :foo
-          end
-        end
-
-        item = Item.new
-        item.valid? # => false
-
-### Validation Only - helpful if your class already has an errors object, but lacks built in validation
-
-     require 'simple_model'
-
-        class Item < SimpleRecord::Base
-          include SimpleModel::Validation
-
-          attr_accessor :foo
-
-          private
-          def validate
-            validates_presence_of :foo
-          end
-        end
-
-        item = Item.new
-        item.valid? # => false
 
 ## Contributing to simple_model
  
