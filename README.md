@@ -20,11 +20,7 @@ SimpleModel is available through [Rubygems](http://rubygems.org/gems/simple_mode
           has_booleans :paid
           has_currency :price, :default => 10.0
           has_dates :created_at
-
-          private
-          def validate
-            validates_inclusion_of :price, :in => 10..25
-          end
+          validates_inclusion_of :price, :in => 10..25
         end
         
         item = Item.new(:created_at => "12/30/2010")
