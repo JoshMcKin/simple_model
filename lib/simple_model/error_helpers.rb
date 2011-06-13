@@ -1,5 +1,7 @@
 module SimpleModel
   module ErrorHelpers
+ 
+    attr_accessor :errors_count
 
     def errors?
       !self.errors.blank?
@@ -10,8 +12,8 @@ module SimpleModel
       #set defaults and overwrite
       options = {
         :failed_action => "saving",
-       :id => 'errorExplanation',
-       :classes =>  ''}.merge!(options)
+        :id => 'errorExplanation',
+        :classes =>  ''}.merge!(options)
     
       error_list  = ""
       
@@ -34,12 +36,21 @@ module SimpleModel
     def create_error_list(key,value)
       error_items = ""
       if value.is_a?(Array)
-        error_items << "<li><ul>#{key.to_s.titleize} #{puralize_errors_string(value)}:"
-        value.each do |item|
-         new_value = item.to_a[0]
-         error_items << create_error_list(new_value[0],new_value[1])
+        if value.length == 1
+          self.errors_count = (self.errors_count.to_i + 1)
+          error_items << "<li>#{key.to_s.titleize} #{value[0]}<li>" 
+        else
+          error_items << "<li><ul>#{key.to_s.titleize} errors:"
+          value.each do |item|
+            if item.is_a?(Hash)
+              new_value = item.to_a[0]
+              error_items << create_error_list(new_value[0],new_value[1])
+            else
+              error_items << "<li>#{key.to_s.titleize} #{item}</li>"
+            end
+          end
+          error_items << "</ul></li>"
         end
-        error_items << "</ul></li>"
       elsif value.is_a?(Hash)
         error_items << "<li><ul>#{key.to_s.titleize} error:"
         error_items << create_error_list(value[0],value[1])
