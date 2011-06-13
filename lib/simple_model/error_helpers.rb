@@ -46,6 +46,7 @@ module SimpleModel
               new_value = item.to_a[0]
               error_items << create_error_list(new_value[0],new_value[1])
             else
+              self.errors_count = (self.errors_count.to_i + 1)
               error_items << "<li>#{key.to_s.titleize} #{item}</li>"
             end
           end
