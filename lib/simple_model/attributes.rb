@@ -159,8 +159,9 @@ module SimpleModel
 
           attr_reader attr
           define_reader_with_options(attr,options)
-          define_method("#{attr.to_s}=") do |val|
-            instance_variable_set("@#{attr}", val.to_date)
+          define_method("#{attr.to_s}=") do |val|   
+            val = val.to_date unless val.nil?
+            instance_variable_set("@#{attr}", val )
             attributes[attr] = val
             val
 
@@ -172,12 +173,11 @@ module SimpleModel
       def has_times(*attrs)
         options = attrs.extract_options!
         attrs.each do |attr|
-
           attr_reader attr
           define_reader_with_options(attr,options)
           define_method("#{attr.to_s}=") do |val|
-
-            instance_variable_set("@#{attr}", val.to_time)
+            val = val.to_time unless val.nil?
+            instance_variable_set("@#{attr}", val)
             attributes[attr] = val
             val
           end
