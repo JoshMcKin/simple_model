@@ -28,7 +28,9 @@ module SimpleModel
 
       # Returns a string with representation of currency, rounded to nearest hundredth
       def to_currency_s(symbol="$")
+       
         num = self.round_to(2).to_s
+        neg = num.include?("-")
         while num.index('.') != (num.length-3)
           num << '0'
         end
@@ -38,6 +40,10 @@ module SimpleModel
           comma += 4
         end
         num.insert(0,symbol)
+        if neg
+          num.delete!("-")
+          num.insert(0, "-")
+        end
         num
       end
     end
