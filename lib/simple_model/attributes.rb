@@ -6,27 +6,9 @@ module SimpleModel
   module Attributes
     include ExtendCore
 
-    attr_accessor :id, :saved
     #Set attribute values to those supplied at initialization
     def initialize(*attrs)
       set_attributes(attrs.extract_options!)
-    end
-
-    def new_record
-      @new_record = true if @new_record.nil?
-      @new_record
-    end
-
-    def new_record?
-      new_record
-    end
-
-    def new_record=(new_record)
-      @new_record = new_record
-    end
-
-    def persisted?
-      saved.to_b
     end
 
     # Place to store set attributes and their values

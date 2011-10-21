@@ -2,7 +2,6 @@
 $:.push File.expand_path("../lib", __FILE__)
 require "simple_model/version"
 
-
 Gem::Specification.new do |s|
   s.name        = "simple_model"
   s.version     = SimpleModel::VERSION
