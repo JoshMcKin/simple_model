@@ -28,6 +28,71 @@ describe SimpleModel do
     a.errors.add(:test_attr, "test")
     a.errors?.should be_true
   end
+  
+  it 'Should include validation callbacks' do
+    class TestStuff < SimpleModel::Base
+    end
+    TestStuff.respond_to?(:before_validation).should be_true
+    TestStuff.respond_to?(:after_save).should be_true
+    
+  end
+  
+  it 'Should include peform validation callbacks' do
+    class TestStuff < SimpleModel::Base
+      before_validation :set_foo   
+      after_validation :set_bar
+      attr_accessor :foo,:bar
+      validates :foo, :presence => true
+     
+         
+      private
+      def set_foo
+        self.foo = "foo"
+      end
+      
+      def set_bar
+        self.bar = "bar"
+      end
+    end
+    
+     t = TestStuff.new
+     t.valid?
+     t.foo.should eql('foo') 
+     t.bar.should eql('bar')
+  end
+  
+  it "should run call backs on save" do
+    class TestStuff < SimpleModel::Base
+      save do
+        puts "saved"
+        true
+      end
+      before_save :set_foo   
+      after_validation :set_bar
+      attr_accessor :foo,:bar
+      validates :foo, :presence => true
+     
+      
+      private
+      
+      def my_save_method
+        true
+      end
+      
+      def set_foo
+        self.foo = "foo"
+      end
+      
+      def set_bar
+        self.bar = "bar"
+      end
+    end
+    
+     t = TestStuff.new
+     t.save
+     t.foo.should eql('foo') 
+     t.bar.should eql('bar')
+  end
 end
 
 #describe SimpleModel::Errors do
