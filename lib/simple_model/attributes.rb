@@ -22,9 +22,7 @@ module SimpleModel
         self.send("#{attr[0].to_sym}=",attr[1])
       end
     end
-
     alias :update_attributes :set_attributes
-
 
     def self.included(base)
       base.extend(ClassMethods)
@@ -59,7 +57,6 @@ module SimpleModel
             instance_variable_set("@#{attr}", val.to_s.to_b)
             attributes[attr] = val
             val
-
           end
 
           define_method ("#{attr.to_s}?") do
@@ -165,7 +162,6 @@ module SimpleModel
           end
         end
       end
-
 
       def fetch_alias_name(attr)
         alias_name = (attr.to_s << "_old=").to_sym

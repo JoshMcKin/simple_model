@@ -38,7 +38,7 @@ module SimpleModel
     end
      
     # Provides a means of rolling backing actions. 
-    # Expects a hash similar to {:update => :update_rollback, :create => :create_rollback},
+    # Expects a hash like {:update => :update_rollback, :create => :create_rollback},
     # where :update and :create are the actions that may be preformed, and :update_rollback
     # and :create_rollback are the methods you have defined that perform what is nesseccary
     # to undo whatever may have been done.
@@ -52,7 +52,6 @@ module SimpleModel
         completed
       end
     end
-  
     
     def self.save(*methods)
       self.define_action(methods,:save)
@@ -70,8 +69,6 @@ module SimpleModel
       self.define_action(methods,:destroy)
     end 
     
-    
-    
     private
     
     def run_action(methods,action)
@@ -84,8 +81,7 @@ module SimpleModel
             ran = self.send(method)
             completed = ran unless ran
           end
-        end
-        
+        end       
         if completed
           self.saved = true
         else
