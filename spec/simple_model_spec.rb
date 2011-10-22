@@ -1,6 +1,28 @@
 require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 
 describe SimpleModel do
+  
+  describe "save" do
+    
+    it "should perform the supplied methods" do
+      class TestStuff < SimpleModel::Base
+        save :test
+        
+        attr_accessor :foo
+        
+        def test
+          self.foo = "test"
+          return true
+        end
+      end
+      
+      t = TestStuff.new
+      t.save
+      t.foo.should eql("test")
+    end
+  end
+  
+  
   it 'Should add a boolean setter' do
     class TestStuff < SimpleModel::Base
       has_booleans :test_boolean
@@ -12,10 +34,10 @@ describe SimpleModel do
     class TestStuff < SimpleModel::Base
       has_booleans :test_boolean
     end
-   t =  TestStuff.new
-   t.methods.include?(:test_boolean).should be_true
-   t.test_boolean = true
-   t.test_boolean.should be_true
+    t =  TestStuff.new
+    t.methods.include?(:test_boolean).should be_true
+    t.test_boolean = true
+    t.test_boolean.should be_true
     #a.test.should be_false
   end
   it 'Should add a error setter' do
@@ -55,10 +77,10 @@ describe SimpleModel do
       end
     end
     
-     t = TestStuff.new
-     t.valid?
-     t.foo.should eql('foo') 
-     t.bar.should eql('bar')
+    t = TestStuff.new
+    t.valid?
+    t.foo.should eql('foo') 
+    t.bar.should eql('bar')
   end
   
   it "should run call backs on save" do
@@ -88,10 +110,10 @@ describe SimpleModel do
       end
     end
     
-     t = TestStuff.new
-     t.save
-     t.foo.should eql('foo') 
-     t.bar.should eql('bar')
+    t = TestStuff.new
+    t.save
+    t.foo.should eql('foo') 
+    t.bar.should eql('bar')
   end
 end
 
