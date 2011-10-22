@@ -37,55 +37,36 @@ module SimpleModel
       saved?
     end
      
-    # Provides a means of rolling backing actions. 
-    # Expects a hash like {:update => :update_rollback, :create => :create_rollback},
-    # where :update and :create are the actions that may be preformed, and :update_rollback
-    # and :create_rollback are the methods you have defined that perform what is nesseccary
-    # to undo whatever may have been done.
-    def self.rollbacks(methods={})    
-      define_method("rollback(action)") do
-        completed = true
-        methods.each do |method, action|      
-          rolled_back = self.send(action) if self.respond_to(action)
-          completed = rolled_back unless rolled_back                   
-        end
-        completed
-      end
-    end
     
     def self.save(*methods)
-      self.define_action(methods,:save)
+      define_model_action(methods,:save)
     end
     
     def self.create(*methods)
-      self.define_action(methods,:create)
+      define_model_action(methods,:create)
     end
     
     def self.update(*methods)
-      self.define_action(methods,:update)
+      define_model_action(methods,:update)
     end
     
     def self.destroy(*methods)
-      self.define_action(methods,:destroy)
+      define_model_action(methods,:destroy)
     end 
     
     private
     
-    def run_action(methods,action)
+    def run_model_action(methods,options)
       completed = true
       if self.valid?
-        if block_given?
-          completed = yield 
-        else
-          methods.each do |method|
-            ran = self.send(method)
-            completed = ran unless ran
-          end
-        end       
+        methods.each do |method|
+          ran = self.send(method)
+          completed = ran unless ran
+        end
         if completed
           self.saved = true
         else
-          self.rollback(action) unless completed
+          self.send(options[:rollback]) unless options[:rollback].blank?
         end    
       else 
         completed = false
@@ -93,10 +74,11 @@ module SimpleModel
       completed
     end
     
-    def self.define_action(methods,action)
+    def self.define_model_action(methods,action)
+      options = methods.extract_options!
       define_method(action) do
         self.run_callbacks(action) do  
-          run_action(methods,action)
+          run_model_action(methods,options)
         end
       end
     end
