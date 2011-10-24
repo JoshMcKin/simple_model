@@ -1,24 +1,59 @@
 require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 
 describe SimpleModel do
-  
-  describe "save" do
+  context 'action methods' do
+    describe "save" do
     
-    it "should perform the supplied methods" do
-      class TestStuff < SimpleModel::Base
-        save :test
+      it "should perform the supplied methods" do
+        class TestStuff < SimpleModel::Base
+          save :test
         
-        attr_accessor :foo
+          attr_accessor :foo
         
-        def test
-          self.foo = "test"
-          return true
+          def test
+            self.foo = "test"
+            return true
+          end
         end
+      
+        t = TestStuff.new
+        t.save
+        t.foo.should eql("test")
       end
       
-      t = TestStuff.new
-      t.save
-      t.foo.should eql("test")
+      it "should be false if validation fails" do
+        class TestStuff < SimpleModel::Base
+          save :test
+          has_decimal :price
+          validates_inclusion_of :price, :in => 10..25
+          validates :price, :presence => true
+          
+        
+          def test
+            true
+          end
+        end
+      
+        t = TestStuff.new
+        t.save.should be_false
+      end
+    end
+  
+    describe "destroy" do
+    
+      it "should not preform validation by default" do
+        class TestStuff < SimpleModel::Base
+          destroy :test
+          attr_accessor :foo
+          validate :foo, :presence => true
+          def test
+            return true
+          end
+        end
+      
+        t = TestStuff.new
+        t.destroy.should be_true
+      end
     end
   end
   
@@ -83,12 +118,9 @@ describe SimpleModel do
     t.bar.should eql('bar')
   end
   
-  it "should run call backs on save" do
+  it "should run save and validation callbacks on save" do
     class TestStuff < SimpleModel::Base
-      save do
-        puts "saved"
-        true
-      end
+      save :my_save_method
       before_save :set_foo   
       after_validation :set_bar
       attr_accessor :foo,:bar

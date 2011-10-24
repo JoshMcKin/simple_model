@@ -105,16 +105,22 @@ module SimpleModel
     def self.update(*methods)
       define_model_action(methods,:update)
     end
-    
-    def self.destroy(*methods)
-      define_model_action(methods,:destroy)
+      
+    #Destroy does not run normal validation by default.
+    def self.destroy(*methods)   
+      define_model_action(methods,:destroy, {:validate => false})
     end 
     
     private
     
+    
+    # Skeleton for action instance methods
     def run_model_action(methods,options)
       completed = true
-      if self.valid?
+      if !options[:validate] ||
+          (options[:validation_methods] && valid_using_other?(options[:validation_methods])) || 
+          self.valid?
+        
         methods.each do |method|
           ran = self.send(method)
           completed = ran unless ran
@@ -130,9 +136,26 @@ module SimpleModel
       completed
     end
     
-    def self.define_model_action(methods,action)
-      options = methods.extract_options!
-      define_method(action) do
+    
+    # Run supplied methods as valdation. Each method should return a boolean
+    # If using this option, to see if errors are present use object_name.errors.blank?,
+    # otherwise if you run object_name.valid? you will over write the errors 
+    # generated here.
+    def valid_using_other?(methods)
+      valid = true
+      methods.each do |method|
+        valid = false unless self.send(method)
+      end
+      valid
+    end
+    
+    
+    # Defines the model action's instantace methods and applied defaults.
+    # Defines methods with :validate options as true by default.
+    def self.define_model_action(methods,action,default_options={:validate => true})
+      default_options.merge!(methods.extract_options!)
+      define_method(action) do |opts={}|
+        options = default_options.merge(opts)
         self.run_callbacks(action) do  
           run_model_action(methods,options)
         end
