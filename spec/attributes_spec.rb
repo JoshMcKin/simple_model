@@ -24,7 +24,7 @@ describe SimpleModel::Attributes do
 
 end
 describe SimpleModel::Attributes, 'define_reader_with_options' do
-  before(:all) do
+  before(:each) do
     class TestDefault
       include SimpleModel::Attributes
       attr_accessor :test
@@ -41,6 +41,23 @@ describe SimpleModel::Attributes, 'define_reader_with_options' do
     default.test = "New"
     default.test.should eql("New")
   end
+  
+  context 'default value is a symbol' do
+    it "should call the method it describes" do
+      class TestDefault
+        include SimpleModel::Attributes
+        attr_accessor :test
+        define_reader_with_options :test, :default => :default_value
+        def default_value
+          "test"
+        end
+      end
+      
+      default = TestDefault.new
+      default.test.should eql("test")
+    end
+  end
+  
 
 end
 describe SimpleModel::Attributes, 'has_booleans' do

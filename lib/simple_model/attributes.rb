@@ -175,8 +175,9 @@ module SimpleModel
       def define_reader_with_options(attr,options)
         unless options[:default].blank?
           define_method (attr.to_s) do
-            val = instance_variable_get("@#{attr.to_s}")
-            val = options[:default] if val.nil?
+            default = options[:default].is_a?(Symbol) ? self.send(options[:default]) : options[:default]
+            val = instance_variable_get("@#{attr.to_s}")    
+            val = default if val.nil?
             val
           end
         end
