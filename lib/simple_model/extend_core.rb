@@ -145,6 +145,14 @@ module SimpleModel
           :middle_name => (parts * " " unless parts.empty?) }
       end
     end
+   BigDecimal.class_eval do
+     
+    def to_currency_s(symbol="$")
+      self.to_f.to_currency_s(symbol)
+    end
+    
+   end
+    
     Fixnum.class_eval do
 
       #Any value greater than 0 is true

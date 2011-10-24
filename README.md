@@ -16,11 +16,17 @@ SimpleModel is available through [Rubygems](http://rubygems.org/gems/simple_mode
       require 'simple_model'
 
         class Item < SimpleModel::Base
+          save :save_item
           has_booleans :active, :default => true
           has_booleans :paid
           has_currency :price, :default => 10.0
           has_dates :created_at
           validates_inclusion_of :price, :in => 10..25
+          
+          def save_item
+            puts self.price.to_f.to_currency_s
+            true
+          end
         end
         
         item = Item.new(:created_at => "12/30/2010")
@@ -32,6 +38,10 @@ SimpleModel is available through [Rubygems](http://rubygems.org/gems/simple_mode
         item.price = '$1,024.00'
         item.price      # => #<BigDecimal:100c989d8,'0.1024E4',9(27)>
         item.valid?     # => false
+        item.price = 15 # => 15.0
+        item.save       # => $15.00
+                        # => true
+                        
 
 
 ## Contributing to simple_model
