@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    simple_model (0.2.6)
+    simple_model (1.0.0)
       activemodel (~> 3.0)
       activesupport (~> 3.0)
 
