@@ -28,7 +28,7 @@ SimpleModel is available through [Rubygems](http://rubygems.org/gems/simple_mode
           end
 
           def file_name
-           "receipt.txt"
+           @file_name ||= "receipt-#{self.created_at.to_i}.txt"
           end
           
           def save_item
