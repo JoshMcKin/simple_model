@@ -16,21 +16,42 @@ SimpleModel is available through [Rubygems](http://rubygems.org/gems/simple_mode
       require 'simple_model'
 
         class Item < SimpleModel::Base
-          save :save_item
+          save :save_item, :rollback => :undo_save
           has_booleans :active, :default => true
           has_booleans :paid
           has_currency :price, :default => 10.0
-          has_dates :created_at
+          has_times :created_at, :default => :now
           validates_inclusion_of :price, :in => 10..25
           
+          def now
+            Time.now
+          end
+
+          def file_name
+           "receipt.txt"
+          end
+          
           def save_item
-            puts self.price.to_f.to_currency_s
+            begin
+              File.open(self.file_name, 'w') do |receipt|
+                receipt.puts self.created_at
+                receipt.puts "price:#{self.price}"
+                receipt.puts "paid:#{self.paid}"
+              end
+            rescue
+              return false
+            end
             true
+          end
+
+          def undo_save
+            File.delete(file_name)
           end
         end
         
-        item = Item.new(:created_at => "12/30/2010")
-        item.created_at # => #<Date: 2010-12-30 (4911121/2,0,2299161)>
+        item = Item.new
+        item.created_at # => 2011-10-23 21:56:07 -0500
+        item.created_at # => 2011-10-23 21:56:08 -0500
         item.active     # => true
         item.paid       # => nil
         item.paid?      # => false
@@ -38,9 +59,8 @@ SimpleModel is available through [Rubygems](http://rubygems.org/gems/simple_mode
         item.price = '$1,024.00'
         item.price      # => #<BigDecimal:100c989d8,'0.1024E4',9(27)>
         item.valid?     # => false
-        item.price = 15 # => 15.0
-        item.save       # => $15.00
-                        # => true
+        item.price = 15 
+        item.save       # => true
                         
 
 
