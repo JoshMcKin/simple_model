@@ -85,7 +85,7 @@ module SimpleModel
 
       # Creates setter and getter methods for currency attributes
       # attributes are cast to BigDecimal and rounded to nearest cent
-      # Warning, rounding occurs on all sets, so if you need to keep higher prescsion
+      # #Warning, rounding occurs on all sets, so if you need to keep higher prescsion
       # use has_decimals
       def has_currency(*attrs)
         options = attrs.extract_options!
