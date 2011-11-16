@@ -55,6 +55,7 @@ module SimpleModel
           after_attribute_definition attr
         end
       end
+      alias :has_attribute :has_attributtes
 
       # Creates setter and getter methods for boolean attributes
       def has_booleans(*attrs)

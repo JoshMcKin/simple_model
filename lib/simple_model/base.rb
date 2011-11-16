@@ -20,8 +20,8 @@ module SimpleModel
   #
   # Provides an interface for any class to build tabless models.
   # 
-  # Implements Validations and Callsbacks from ActiveModel and attribute datatype specific
-  # attribute definition with default options
+  # Implements Validations, Callbacks and Dirty from ActiveModel, and datatype specific
+  # attribute definitions with default options
   # 
   # == SimpleModel Actions:
   # 
