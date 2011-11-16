@@ -122,7 +122,8 @@ module SimpleModel
     end
     
     def before_attribute_set(method,val)
-      send("#{method.to_s}_will_change!") unless val == instance_variable_get("@#{method.to_s}")
+      change_methods_str = "#{method.to_s}_will_change!".to_sym
+      send(change_methods_str) if val != instance_variable_get("@#{method.to_s}") && self.respond_to?(change_methods_str.to_sym)
     end   
     
     private
