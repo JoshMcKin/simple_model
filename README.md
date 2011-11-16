@@ -1,13 +1,14 @@
 # SimpleModel
 A collection of convenience methods for building table-less models. 
 SimpleModel implements:
-    *ActiveModel::Validations
-    *ActiveModel::Conversion
-    *ActiveModel::Validations::Callbacks
-    *ActiveModel::Dirty
-    *ActiveModel::Naming
-    *ActiveModel::Callbacks
-    *ActiveSupport core extentions
+
+* ActiveModel::Validations
+* ActiveModel::Conversion
+* ActiveModel::Validations::Callbacks
+* ActiveModel::Dirty
+* ActiveModel::Naming
+* ActiveModel::Callbacks
+* ActiveSupport core extentions (see [SimpleModel::Base](https://github.com/JoshMcKin/simple_model/blob/master/lib/simple_model/base.rb))
 
 Additionally SimpleModel implements basic model actions
 
