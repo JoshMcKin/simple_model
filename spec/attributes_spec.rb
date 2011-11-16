@@ -75,3 +75,4 @@ describe SimpleModel::Attributes, 'has_booleans' do
   end
 
 end
+
