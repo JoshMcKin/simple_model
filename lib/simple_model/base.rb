@@ -87,6 +87,8 @@ module SimpleModel
     define_model_callbacks :save, :update, :create, :destroy
     
     class << self
+      
+      # Collect methods as they are defined, then add to define_attribute_methods
       def after_attribute_definition(method)
         @defined_attribute_methods ||= []
         @defined_attribute_methods << method

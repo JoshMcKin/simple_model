@@ -32,162 +32,15 @@ module SimpleModel
     def self.included(base)
       base.extend(ClassMethods)
     end
+    
+    
  
     module ClassMethods
       
       # Hook to call class method after attribute method definitions
       def after_attribute_definition(attr)  
-      end    
+      end
       
-      #creates setter and getter datatype special attribute
-      def has_attributes(*attrs)
-        options = attrs.extract_options!
-        attrs.each do |attr|
-          
-          attr_reader attr
-          define_reader_with_options(attr,options)
-          define_method("#{attr.to_s}=") do |val|
-            before_attribute_set(attr,val)
-            instance_variable_set("@#{attr}", val)
-            attributes[attr] = val
-            val
-          end
-          after_attribute_definition attr
-        end
-      end
-      alias :has_attribute :has_attributtes
-
-      # Creates setter and getter methods for boolean attributes
-      def has_booleans(*attrs)
-        options = attrs.extract_options!
-        attrs.each do |attr|       
-          attr_reader attr
-          define_reader_with_options(attr,options)  
-          define_method("#{attr.to_s}=") do |val|
-            val = val.to_s.to_b
-            before_attribute_set(attr,val)
-            instance_variable_set("@#{attr}", val)
-            attributes[attr] = val
-            val
-          end
-          
-          define_method ("#{attr.to_s}?") do
-            send("#{attr.to_s}".to_sym).to_s.to_b
-          end
-          after_attribute_definition attr
-        end
-      end
-      alias :has_boolean :has_booleans
-
-      # Creates setter and getter methods for integer attributes
-      def has_ints(*attrs)
-        options = attrs.extract_options!
-        attrs.each do |attr|
-          attr_reader attr
-          define_reader_with_options(attr,options)
-          define_method("#{attr.to_s}=") do |val|  
-            val = val.to_i
-            before_attribute_set(attr,val)
-            instance_variable_set("@#{attr}", val)
-            attributes[attr] = val
-            val
-          end
-          after_attribute_definition attr
-        end
-      end
-      alias :has_int :has_ints
-
-      # Creates setter and getter methods for currency attributes
-      # attributes are cast to BigDecimal and rounded to nearest cent
-      # #Warning, rounding occurs on all sets, so if you need to keep higher prescsion
-      # use has_decimals
-      def has_currency(*attrs)
-        options = attrs.extract_options!
-        attrs.each do |attr|
-          attr_reader attr
-          define_reader_with_options(attr,options)
-          define_method("#{attr.to_s}=") do |val|
-            val = val.to_s.to_currency
-            before_attribute_set(attr,val)
-            instance_variable_set("@#{attr}", val)
-            attributes[attr] = val
-            val
-          end
-          after_attribute_definition attr
-        end
-      end
-
-      def has_decimals(*attrs)
-        options = attrs.extract_options!
-        attrs.each do |attr|
-          attr_reader attr
-          define_reader_with_options(attr,options)
-          define_method("#{attr.to_s}=") do |val|
-            val = BigDecimal("#{val}")
-            before_attribute_set(attr,val)
-            instance_variable_set("@#{attr}", val)
-            attributes[attr] = val
-            val
-          end
-          after_attribute_definition attr
-        end
-      end
-      alias :has_decimal :has_decimals
-
-      # Creates setter and getter methods for float attributes
-      def has_floats(*attrs)
-        options = attrs.extract_options!
-        attrs.each do |attr|
-          attr_reader attr
-          define_reader_with_options(attr,options)
-          define_method("#{attr.to_s}=") do |val|
-            val = val.to_f
-            before_attribute_set(attr,val)
-            instance_variable_set("@#{attr}", val)
-            attributes[attr] = val
-            val
-          end
-          after_attribute_definition attr
-        end
-      end
-      alias :has_float :has_floats
-      
-      # Creates setter and getter methods for date attributes
-      def has_dates(*attrs)
-        options = attrs.extract_options!
-        attrs.each do |attr|
-          attr_reader attr
-          define_reader_with_options(attr,options)
-          define_method("#{attr.to_s}=") do |val|   
-            val = val.to_date unless val.nil?
-            before_attribute_set(attr,val)
-            instance_variable_set("@#{attr}", val )
-            attributes[attr] = val
-            val
-
-          end
-          after_attribute_definition attr
-        end
-      end
-      alias :has_date :has_dates
-      
-      # Creates setter and getter methods for time attributes
-      def has_times(*attrs)
-        options = attrs.extract_options!
-        attrs.each do |attr|
-          attr_reader attr
-          define_reader_with_options(attr,options)
-          define_method("#{attr.to_s}=") do |val|
-            val = val.to_time unless val.nil?
-            before_attribute_set(attr,val)
-            instance_variable_set("@#{attr}", val)
-            attributes[attr] = val
-            val
-          end
-          after_attribute_definition attr
-        end
-      end
-
       # Defines a reader method that returns a default value if current value
       # is nil, if :default is present in the options hash
       def define_reader_with_options(attr,options)
@@ -200,6 +53,100 @@ module SimpleModel
           end
         end
       end
+      
+      # Builder for attribute methods
+      def build_attribute_methods(attr,options={},cast_value_methods=[])
+        attr_reader attr
+        define_reader_with_options(attr,options)
+        define_method("#{attr.to_s}=") do |val|
+          val = val.cast_to(cast_value_methods)
+          before_attribute_set(attr,val)
+          instance_variable_set("@#{attr}", val)
+          attributes[attr] = val
+          val
+        end
+        after_attribute_definition attr
+      end
+      
+      #creates setter and getter datatype special attribute
+      def has_attributes(*attrs)
+        options = attrs.extract_options!
+        attrs.each do |attr|
+          build_attribute_methods(attr,options)
+        end
+      end
+      alias :has_attribute :has_attributes
+
+      # Creates setter and getter methods for boolean attributes
+      def has_booleans(*attrs)
+        options = attrs.extract_options!
+        attrs.each do |attr|                 
+          build_attribute_methods(attr,options,[:to_s,:to_b])
+          define_method ("#{attr.to_s}?") do
+            send("#{attr.to_s}".to_sym).to_s.to_b
+          end
+        end
+      end
+      alias :has_boolean :has_booleans
+
+      # Creates setter and getter methods for integer attributes
+      def has_ints(*attrs)
+        options = attrs.extract_options!
+        attrs.each do |attr|
+          build_attribute_methods(attr,options,[:to_i])
+        end
+      end
+      alias :has_int :has_ints
+
+      # Creates setter and getter methods for currency attributes
+      # attributes are cast to BigDecimal and rounded to nearest cent
+      # #Warning, rounding occurs on all sets, so if you need to keep higher prescsion
+      # use has_decimals
+      def has_currency(*attrs)
+        options = attrs.extract_options!
+        attrs.each do |attr|
+          build_attribute_methods(attr,options,[:to_s,:to_currency])
+
+        end
+      end
+
+      def has_decimals(*attrs)
+        options = attrs.extract_options!
+        attrs.each do |attr|
+          build_attribute_methods(attr,options,[:to_f,:to_d])
+
+        end
+      end
+      alias :has_decimal :has_decimals
+
+      # Creates setter and getter methods for float attributes
+      def has_floats(*attrs)
+        options = attrs.extract_options!
+        attrs.each do |attr|
+          build_attribute_methods(attr,options,[:to_f])
+
+        end
+      end
+      alias :has_float :has_floats
+      
+      # Creates setter and getter methods for date attributes
+      def has_dates(*attrs)
+        options = attrs.extract_options!
+        attrs.each do |attr|
+          build_attribute_methods(attr,options,[:to_s,:to_date])
+
+        end
+      end
+      alias :has_date :has_dates
+      
+      # Creates setter and getter methods for time attributes
+      def has_times(*attrs)
+        options = attrs.extract_options!
+        attrs.each do |attr|
+          build_attribute_methods(attr,options,[:to_s,:to_time])
+
+        end
+      end      
     end
   end
 end

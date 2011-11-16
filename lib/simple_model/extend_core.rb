@@ -5,6 +5,19 @@ module SimpleModel
     require 'bigdecimal'
     require 'bigdecimal/util'
   
+    Object.class_eval do
+      
+      # Expects an array of symboles representing methods for casting the object 
+      # EX: "1".cast_to(:float) # => 1.0
+      def cast_to(methods=[])
+        val = self
+        methods.each do |method|
+          val = val.send(method)
+        end
+        val
+      end
+    end
+    
     Float.class_eval do
     
       # any value greater than 0.0 is true
