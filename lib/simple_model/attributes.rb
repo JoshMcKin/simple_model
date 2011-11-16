@@ -47,15 +47,15 @@ module SimpleModel
       # Defines a reader method that returns a default value if current value
       # is nil, if :default is present in the options hash
       def define_reader_with_options(attr,options)
-        if options[:default].blank?
-          attr_reader attr
-        else
+        if options.has_key?(:default)
           define_method(attr.to_s) do
             default = (options[:default].is_a?(Symbol) ? self.send(options[:default]) : options[:default])
             val = instance_variable_get("@#{attr.to_s}")    
             val = default unless instance_variable_defined?("@#{attr.to_s}")
             val
           end
+        else
+          attr_reader attr 
         end
       end
       
@@ -168,7 +168,8 @@ module SimpleModel
           build_attribute_methods(attr,options,[:to_s,:to_time])
 
         end
-      end      
+      end 
+      alias :has_time :has_times
     end
   end
 end

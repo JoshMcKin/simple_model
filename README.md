@@ -1,8 +1,15 @@
 # SimpleModel
-A collection of convenience methods for building table-less models. If ActiveModel
-gem is installed, SimpleModel::Based will include ActiveModel::Validations,
-include ActiveModel::Conversion and extend ActiveModel::Naming. If ActiveModel
-gem is not available, SimpleModel::Base defaults to its own built-in Error and Validation modules.
+A collection of convenience methods for building table-less models. 
+SimpleModel implements:
+    *ActiveModel::Validations
+    *ActiveModel::Conversion
+    *ActiveModel::Validations::Callbacks
+    *ActiveModel::Dirty
+    *ActiveModel::Naming
+    *ActiveModel::Callbacks
+    *ActiveSupport core extentions
+
+Additionally SimpleModel implements basic model actions
 
 ## Installation
 
@@ -16,11 +23,20 @@ SimpleModel is available through [Rubygems](http://rubygems.org/gems/simple_mode
       require 'simple_model'
 
         class Item < SimpleModel::Base
+          # Model Actions
           save :save_item, :rollback => :undo_save
+          
+          # Callbacks
+          before_validation :add_to_array
+          
+          # Attributes
           has_booleans :active, :default => true
           has_booleans :paid
-          has_currency :price, :default => 10.0
+          has_currency :price, :default => 10.0.to_currency
           has_times :created_at, :default => :now
+          has_attribute :my_array, :default => []
+          
+          # Validation
           validates_inclusion_of :price, :in => 10..25
           
           def now
@@ -30,7 +46,13 @@ SimpleModel is available through [Rubygems](http://rubygems.org/gems/simple_mode
           def file_name
            @file_name ||= "receipt-#{self.created_at.to_i}.txt"
           end
-          
+
+          private
+
+          def add_to_array
+            my_array << 1
+          end
+  
           def save_item
             begin
               File.open(self.file_name, 'w') do |receipt|
@@ -50,17 +72,25 @@ SimpleModel is available through [Rubygems](http://rubygems.org/gems/simple_mode
         end
         
         item = Item.new
-        item.created_at # => 2011-10-23 21:56:07 -0500
-        item.created_at # => 2011-10-23 21:56:08 -0500
-        item.active     # => true
-        item.paid       # => nil
-        item.paid?      # => false
-        item.price      # => 10.0
+        item.changed?           # => false
+        item.created_at         # => 2011-10-23 21:56:07 -0500
+        item.created_at         # => 2011-10-23 21:56:08 -0500
+        item.active             # => true
+        item.paid               # => nil
+        item.paid?              # => false
+        item.price              # => 10.0
         item.price = '$1,024.00'
-        item.price      # => #<BigDecimal:100c989d8,'0.1024E4',9(27)>
-        item.valid?     # => false
+        item.price              # => #<BigDecimal:100c989d8,'0.1024E4',9(27)>
+        item.changed?           # => true
+        item.price_changed      # => true
+        item.changes            # => {"price"=>[#<BigDecimal:7fc61b250da8,'0.1E2',9(27)>, #<BigDecimal:7fc61b1ba600,'0.1024E4',9(27)>]}
+        item.my_array           # => []
+        item.valid?             # => false
+        item.my_array           # => [1]
         item.price = 15 
-        item.save       # => true
+        item.save               # => true
+        item.changed?           # => false
+        item.previous_changes   # => {"price"=>[#<BigDecimal:7fc61b1ba600,'0.1024E4',9(27)>, #<BigDecimal:7fc61b1730e8,'0.15E2',9(27)>], "saved"=>[nil, true]} 
                         
 
 
