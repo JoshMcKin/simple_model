@@ -75,4 +75,18 @@ describe SimpleModel::Attributes, 'has_booleans' do
   end
 
 end
+describe SimpleModel::Attributes, 'has_attributes' do
+  before(:all) do
+    class TestBoolean
+      include SimpleModel::Attributes
+      has_attributes :my_array, :default => []
+    end
+  end
+
+  it "should allow default value to be an empty array" do
+    test = TestBoolean.new
+    test.my_array.should eql([])
+  end
+
+end
 
