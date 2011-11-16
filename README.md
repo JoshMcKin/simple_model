@@ -82,7 +82,7 @@ SimpleModel is available through [Rubygems](http://rubygems.org/gems/simple_mode
         item.price = '$1,024.00'
         item.price              # => #<BigDecimal:100c989d8,'0.1024E4',9(27)>
         item.changed?           # => true
-        item.price_changed      # => true
+        item.price_changed?     # => true
         item.changes            # => {"price"=>[#<BigDecimal:7fc61b250da8,'0.1E2',9(27)>, #<BigDecimal:7fc61b1ba600,'0.1024E4',9(27)>]}
         item.my_array           # => []
         item.valid?             # => false
