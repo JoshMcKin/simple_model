@@ -5,7 +5,7 @@ module SimpleModel
   
   module Attributes
     include ExtendCore
-
+    
     #Set attribute values to those supplied at initialization
     def initialize(*attrs)
       set_attributes(attrs.extract_options!)
@@ -22,6 +22,11 @@ module SimpleModel
         self.send("#{attr[0].to_sym}=",attr[1])
       end
     end
+    
+    # Hook to run method after attribute is converted but before it is set
+    def before_attribute_set(method,val)   
+    end
+    
     alias :update_attributes :set_attributes
 
     def self.included(base)
@@ -29,42 +34,49 @@ module SimpleModel
     end
  
     module ClassMethods
-
+      
+      # Hook to call class method after attribute method definitions
+      def after_attribute_definition(attr)  
+      end    
+      
       #creates setter and getter datatype special attribute
       def has_attributes(*attrs)
         options = attrs.extract_options!
         attrs.each do |attr|
-
+          
           attr_reader attr
           define_reader_with_options(attr,options)
           define_method("#{attr.to_s}=") do |val|
+            before_attribute_set(attr,val)
             instance_variable_set("@#{attr}", val)
             attributes[attr] = val
             val
-
           end
+          after_attribute_definition attr
         end
       end
 
       # Creates setter and getter methods for boolean attributes
       def has_booleans(*attrs)
         options = attrs.extract_options!
-        attrs.each do |attr|
-
+        attrs.each do |attr|       
           attr_reader attr
           define_reader_with_options(attr,options)  
           define_method("#{attr.to_s}=") do |val|
-            instance_variable_set("@#{attr}", val.to_s.to_b)
+            val = val.to_s.to_b
+            before_attribute_set(attr,val)
+            instance_variable_set("@#{attr}", val)
             attributes[attr] = val
             val
           end
-
+          
           define_method ("#{attr.to_s}?") do
             send("#{attr.to_s}".to_sym).to_s.to_b
           end
+          after_attribute_definition attr
         end
       end
-     alias :has_boolean :has_booleans
+      alias :has_boolean :has_booleans
 
       # Creates setter and getter methods for integer attributes
       def has_ints(*attrs)
@@ -72,13 +84,14 @@ module SimpleModel
         attrs.each do |attr|
           attr_reader attr
           define_reader_with_options(attr,options)
-
-          define_method("#{attr.to_s}=") do |val|             
-            instance_variable_set("@#{attr}", val.to_i)
+          define_method("#{attr.to_s}=") do |val|  
+            val = val.to_i
+            before_attribute_set(attr,val)
+            instance_variable_set("@#{attr}", val)
             attributes[attr] = val
             val
-
           end
+          after_attribute_definition attr
         end
       end
       alias :has_int :has_ints
@@ -93,10 +106,13 @@ module SimpleModel
           attr_reader attr
           define_reader_with_options(attr,options)
           define_method("#{attr.to_s}=") do |val|
-            instance_variable_set("@#{attr}", val.to_s.to_currency)
+            val = val.to_s.to_currency
+            before_attribute_set(attr,val)
+            instance_variable_set("@#{attr}", val)
             attributes[attr] = val
             val
           end
+          after_attribute_definition attr
         end
       end
 
@@ -106,10 +122,13 @@ module SimpleModel
           attr_reader attr
           define_reader_with_options(attr,options)
           define_method("#{attr.to_s}=") do |val|
-            instance_variable_set("@#{attr}", BigDecimal("#{val}"))
+            val = BigDecimal("#{val}")
+            before_attribute_set(attr,val)
+            instance_variable_set("@#{attr}", val)
             attributes[attr] = val
             val
           end
+          after_attribute_definition attr
         end
       end
       alias :has_decimal :has_decimals
@@ -118,36 +137,39 @@ module SimpleModel
       def has_floats(*attrs)
         options = attrs.extract_options!
         attrs.each do |attr|
-
           attr_reader attr
           define_reader_with_options(attr,options)
-
           define_method("#{attr.to_s}=") do |val|
-            instance_variable_set("@#{attr}", val.to_f)
+            val = val.to_f
+            before_attribute_set(attr,val)
+            instance_variable_set("@#{attr}", val)
             attributes[attr] = val
             val
-
           end
+          after_attribute_definition attr
         end
       end
       alias :has_float :has_floats
+      
       # Creates setter and getter methods for date attributes
       def has_dates(*attrs)
         options = attrs.extract_options!
         attrs.each do |attr|
-
           attr_reader attr
           define_reader_with_options(attr,options)
           define_method("#{attr.to_s}=") do |val|   
             val = val.to_date unless val.nil?
+            before_attribute_set(attr,val)
             instance_variable_set("@#{attr}", val )
             attributes[attr] = val
             val
 
           end
+          after_attribute_definition attr
         end
       end
       alias :has_date :has_dates
+      
       # Creates setter and getter methods for time attributes
       def has_times(*attrs)
         options = attrs.extract_options!
@@ -156,18 +178,13 @@ module SimpleModel
           define_reader_with_options(attr,options)
           define_method("#{attr.to_s}=") do |val|
             val = val.to_time unless val.nil?
+            before_attribute_set(attr,val)
             instance_variable_set("@#{attr}", val)
             attributes[attr] = val
             val
           end
+          after_attribute_definition attr
         end
-      end
-
-      def fetch_alias_name(attr)
-        alias_name = (attr.to_s << "_old=").to_sym
-        self.module_eval("alias #{alias_name} #{attr}")
-
-        alias_name
       end
 
       # Defines a reader method that returns a default value if current value

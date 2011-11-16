@@ -147,6 +147,24 @@ describe SimpleModel do
     t.foo.should eql('foo') 
     t.bar.should eql('bar')
   end
+  
+  it 'Should implement ActiveModel::Dirty' do
+    class TestStuff < SimpleModel::Base
+      save :my_save_method
+      has_attributes :foo,:bar, :default => "def"
+      def my_save_method
+        true
+      end
+    end
+    
+    t = TestStuff.new
+    t.foo = "bar"
+    t.foo_changed?.should be_true
+    t.foo_change.should eql(["def","bar"])
+    t.changed?.should be_true
+    t.save
+    t.changed?.should be_false
+  end
 end
 
 #describe SimpleModel::Errors do

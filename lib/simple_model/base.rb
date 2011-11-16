@@ -82,37 +82,49 @@ module SimpleModel
     extend ActiveModel::Naming
     extend ActiveModel::Callbacks
     include ActiveModel::Validations::Callbacks
+    include ActiveModel::Dirty
+    
     define_model_callbacks :save, :update, :create, :destroy
-     
+    
+    class << self
+      def after_attribute_definition(method)
+        @defined_attribute_methods ||= []
+        @defined_attribute_methods << method
+        define_attribute_methods @defined_attribute_methods
+      end
+      
+      def save(*methods)
+        define_model_action(methods,:save)
+      end
+    
+      def create(*methods)
+        define_model_action(methods,:create)
+      end
+    
+      def update(*methods)
+        define_model_action(methods,:update)
+      end
+      
+      #Destroy does not run normal validation by default.
+      def destroy(*methods)   
+        define_model_action(methods,:destroy, {:validate => false})
+      end     
+    end
+    
     has_boolean :saved
     has_boolean :new_record, :default => true
-    
     attr_accessor :id
-
+    
     def persisted?
       saved?
     end
-     
     
-    def self.save(*methods)
-      define_model_action(methods,:save)
-    end
-    
-    def self.create(*methods)
-      define_model_action(methods,:create)
-    end
-    
-    def self.update(*methods)
-      define_model_action(methods,:update)
-    end
-      
-    #Destroy does not run normal validation by default.
-    def self.destroy(*methods)   
-      define_model_action(methods,:destroy, {:validate => false})
-    end 
+    def before_attribute_set(method,val)
+      send("#{method.to_s}_will_change!") unless val == instance_variable_get("@#{method.to_s}")
+    end   
     
     private
-    
+   
     
     # Skeleton for action instance methods
     def run_model_action(methods,options)
@@ -125,8 +137,11 @@ module SimpleModel
           ran = self.send(method)
           completed = ran unless ran
         end
+        
         if completed
           self.saved = true
+          @previously_changed = changes
+          @changed_attributes.clear    
         else
           self.send(options[:rollback]) unless options[:rollback].blank?
         end    
