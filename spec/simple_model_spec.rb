@@ -165,6 +165,7 @@ describe SimpleModel do
     t.save
     t.changed?.should be_false
   end
+  
 end
 
 #describe SimpleModel::Errors do

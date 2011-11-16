@@ -126,8 +126,7 @@ module SimpleModel
     end   
     
     private
-   
-    
+      
     # Skeleton for action instance methods
     def run_model_action(methods,options)
       completed = true
