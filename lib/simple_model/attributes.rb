@@ -5,7 +5,8 @@ module SimpleModel
   
   module Attributes
     include ExtendCore
-    
+    extend ActiveSupport::Concern
+    include ActiveModel::AttributeMethods
     #Set attribute values to those supplied at initialization
     def initialize(*attrs)
       set_attributes(attrs.extract_options!)
@@ -33,6 +34,8 @@ module SimpleModel
       base.extend(ClassMethods)
     end
     
+    def fetch_default 
+    end
     
  
     module ClassMethods
@@ -44,29 +47,48 @@ module SimpleModel
       # Defines a reader method that returns a default value if current value
       # is nil, if :default is present in the options hash
       def define_reader_with_options(attr,options)
-        unless options[:default].blank?
-          define_method (attr.to_s) do
-            default = options[:default].is_a?(Symbol) ? self.send(options[:default]) : options[:default]
+        if options[:default].blank?
+          attr_reader attr
+        else
+          define_method(attr.to_s) do
+            default = (options[:default].is_a?(Symbol) ? self.send(options[:default]) : options[:default])
             val = instance_variable_get("@#{attr.to_s}")    
-            val = default if val.nil?
+            val = default unless instance_variable_defined?("@#{attr.to_s}")
             val
           end
         end
       end
       
-      # Builder for attribute methods
-      def build_attribute_methods(attr,options={},cast_value_methods=[])
-        attr_reader attr
-        define_reader_with_options(attr,options)
+      def define_setter(attr,cast_methods)
         define_method("#{attr.to_s}=") do |val|
-          val = val.cast_to(cast_value_methods)
+          val = val.cast_to(cast_methods)
           before_attribute_set(attr,val)
           instance_variable_set("@#{attr}", val)
           attributes[attr] = val
           val
         end
+      end
+      
+      # Builder for attribute methods
+      def build_attribute_methods(attr,options={},cast_methods=[])
+        define_reader_with_options(attr,options)
+        define_setter(attr,cast_methods)
         after_attribute_definition attr
       end
+          
+      # Left this use a module eval for reference, saw no noticable improvement
+      # in speed, so I would rather use code than strings for now
+#      def define_setter_with_eval(attr,cast_methods)
+#        module_eval <<-STR, __FILE__, __LINE__
+#          def #{attr.to_s}=#{attr.to_s}
+#              val = #{attr.to_s}.cast_to(#{cast_methods})
+#              before_attribute_set(:#{attr.to_s},val)
+#              @#{attr.to_s} = val
+#              attributes[:#{attr.to_s}] = val
+#              val
+#          end
+#        STR
+#      end
       
       #creates setter and getter datatype special attribute
       def has_attributes(*attrs)
