@@ -1,5 +1,5 @@
 #--
-# Copyright (c) 2010-2011 Joshua Thomas Mckinney
+# Copyright (c) 2010-2012 Joshua Thomas Mckinney
 #
 # Permission is hereby granted, free of charge, to any person obtaining
 # a copy of this software and associated documentation files (the
@@ -21,20 +21,28 @@
 # WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #++
 module SimpleModel
-
-  #Get those rails goodies
   require 'active_support'
   require 'active_support/i18n'
+  require 'active_support/time'
+  require 'active_support/core_ext/class/attribute'
+  require 'active_support/core_ext/class/attribute_accessors'
+  require 'active_support/core_ext/class/delegating_attributes'
+  require 'active_support/core_ext/class/attribute'
+  require 'active_support/core_ext/array/extract_options'
+  require 'active_support/core_ext/hash/deep_merge'
+  require 'active_support/core_ext/hash/indifferent_access'
+  require 'active_support/core_ext/hash/slice'
+  require 'active_support/core_ext/string/behavior'
+  require 'active_support/core_ext/kernel/singleton_class'
+  require 'active_support/core_ext/module/delegation'
+  require 'active_support/core_ext/module/introspection'
+  require 'active_support/core_ext/object/duplicable'
+  require 'active_support/core_ext/object/blank'
   require 'active_model'
-
-  # Load as necessary
-  autoload :ExtendCore, "simple_model/extend_core"
-  autoload :Attributes, "simple_model/attributes"
-  autoload :ErrorHelpers, "simple_model/error_helpers"
-  autoload :Validation, "simple_model/validation"  
-  autoload :Base, "simple_model/base"
-
-  #Railtie
+  require "simple_model/extend_core"
+  require "simple_model/attributes"
+  require "simple_model/error_helpers"
+  require "simple_model/validation"
+  require "simple_model/base"
   require 'simple_model/simple_model_railtie.rb' if defined?(Rails)
-
 end

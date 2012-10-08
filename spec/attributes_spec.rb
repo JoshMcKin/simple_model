@@ -17,48 +17,43 @@ describe SimpleModel::Attributes do
   end
 
   it "should include set attributes in attributes hash" do
-    @init.attributes.class.should eql(Hash)
+    @init.attributes.should be_kind_of(ActiveSupport::HashWithIndifferentAccess)
     @init.attributes[:test1].should eql("1")
     @init.attributes[:test2].should eql("2")
   end
 
 end
-describe SimpleModel::Attributes, 'define_reader_with_options' do
+describe SimpleModel::Attributes, 'has_attribute' do
   before(:each) do
     class TestDefault
       include SimpleModel::Attributes
-      attr_accessor :test
-      define_reader_with_options :test, :default => "test"
-    end
-  end
-
-  it "should define setter method with default value" do
-    default = TestDefault.new
-    default.test.should eql("test")
-  end
-  it "should not intefer with setting" do
-    default = TestDefault.new
-    default.test = "New"
-    default.test.should eql("New")
-  end
-  
-  context 'default value is a symbol' do
-    it "should call the method it describes" do
-      class TestDefault
-        include SimpleModel::Attributes
-        attr_accessor :test
-        define_reader_with_options :test, :default => :default_value
-        def default_value
-          "test"
-        end
+      has_attribute :foo, :default => "foo"
+      has_attribute :bar, :default => :default_value
+      has_attribute :fab , :default => :some_symbol
+      def default_value
+        "bar"
       end
-      
-      default = TestDefault.new
-      default.test.should eql("test")
     end
+    @default = TestDefault.new
+  end
+
+  it "should define setter method" do
+    @default.respond_to?(:foo=).should be_true
   end
   
-
+  it "should define reader/getter method" do
+    @default.respond_to?(:foo).should be_true
+  end
+  
+  it "should initialize with the default value" do
+    @default.attributes[:foo].should eql("foo")
+  end
+  it "should call the method it describe by the default value if it exists" do 
+    @default.attributes[:bar].should eql("bar")
+  end
+  it "should set the defaul to the supplied symbol, if the method does not exist" do 
+    @default.attributes[:fab].should eql(:some_symbol)
+  end
 end
 describe SimpleModel::Attributes, 'has_booleans' do
   before(:all) do

@@ -18,18 +18,21 @@ module SimpleModel
 
   # == SimpleModel::Base
   #
-  # Provides an interface for any class to build tabless models.
+  # Provides an interface for any class to build tableless models.
   # 
   # Implements Validations, Callbacks and Dirty from ActiveModel, and datatype specific
-  # attribute definitions with default options
+  # attribute definitions with default options. SimpleModel::Base is intended as
+  # an example, while it may be used in production, which it is on many of my apps
+  # today, it is recommend you use SimpleModel::Base as an example to implement your
+  # own model actions.
   # 
   # == SimpleModel Actions:
   # 
   # Model actions provide a tool for making use of Active Model callbacks. Each
   # action creates an instance method representing the action, which calls the 
-  # method(s) listed as symbolswhen defining the actions. Model actions also accept 
+  # method(s) listed as symbols when defining the actions. Model actions also accept 
   # a rollback option, which is called if the action fails. If you plan to 
-  # implement SimpleModel's actions make avoid naming you own methods "save", "destory",
+  # implement SimpleModel's actions make avoid naming you own methods "save", "destroy",
   # "create", and "update", as this will override the methods defined by action.
   # 
   # Available Actions:
@@ -53,7 +56,7 @@ module SimpleModel
   #   has_integers :first_int, :second_int, :default => 1
   #   has_times :now, :default => :get_now
   #   
-  #   save :save_record, :rollback => :rollback
+  #   save :save_record, :rollback => :rollback_save
   # 
   #   def save_record
   #     puts "saved"
@@ -64,7 +67,7 @@ module SimpleModel
   #     Time.now
   #   end
   #   
-  #   def rollback
+  #   def rollback_save
   #     puts "rolled back"
   #   end
   # end
@@ -82,18 +85,10 @@ module SimpleModel
     extend ActiveModel::Naming
     extend ActiveModel::Callbacks
     include ActiveModel::Validations::Callbacks
-    include ActiveModel::Dirty
     
     define_model_callbacks :save, :update, :create, :destroy
     
     class << self
-      
-      # Collect methods as they are defined, then add to define_attribute_methods
-      def after_attribute_definition(method)
-        @defined_attribute_methods ||= []
-        @defined_attribute_methods << method
-        define_attribute_methods @defined_attribute_methods
-      end
       
       def save(*methods)
         define_model_action(methods,:save)
@@ -107,41 +102,29 @@ module SimpleModel
         define_model_action(methods,:update)
       end
       
-      #Destroy does not run normal validation by default.
+      # Destroy does not run normal validation in Rails, but with this we can if we choose to.
       def destroy(*methods)   
         define_model_action(methods,:destroy, {:validate => false})
       end     
     end
     
-    has_boolean :saved
+    has_boolean :persisted
     has_boolean :new_record, :default => true
-    attr_accessor :id
-    
-    def persisted?
-      saved?
-    end
-    
-    def before_attribute_set(method,val)
-      change_methods_str = "#{method.to_s}_will_change!".to_sym
-      send(change_methods_str) if val != instance_variable_get("@#{method.to_s}") && self.respond_to?(change_methods_str.to_sym)
-    end   
-    
+    has_attribute :id # may not be an integer
+    alias :saved? :persisted?
+
     private
       
     # Skeleton for action instance methods
     def run_model_action(methods,options)
       completed = true
-      if !options[:validate] ||
-          (options[:validation_methods] && valid_using_other?(options[:validation_methods])) || 
-          self.valid?
-        
+      if (!options[:validate] || (options[:validation_methods] && valid_using_other?(options[:validation_methods])) || self.valid?)     
         methods.each do |method|
           ran = self.send(method)
           completed = ran unless ran
         end
-        
         if completed
-          self.saved = true
+          self.persisted = true
           @previously_changed = changes
           @changed_attributes.clear    
         else
@@ -151,10 +134,9 @@ module SimpleModel
         completed = false
       end  
       completed
-    end
+    end   
     
-    
-    # Run supplied methods as valdation. Each method should return a boolean
+    # Run supplied methods as validation. Each method should return a boolean
     # If using this option, to see if errors are present use object_name.errors.blank?,
     # otherwise if you run object_name.valid? you will over write the errors 
     # generated here.
@@ -164,14 +146,12 @@ module SimpleModel
         valid = false unless self.send(method)
       end
       valid
-    end
+    end   
     
-    
-    # Defines the model action's instantace methods and applied defaults.
-    # Defines methods with :validate options as true by default.
+    # Defines the model action's instance methods and applied defaults.
     def self.define_model_action(methods,action,default_options={:validate => true})
       default_options.merge!(methods.extract_options!)
-      define_method(action) do |opts={}|
+      define_method(action) do |opts = {}|
         options = default_options.merge(opts)
         self.run_callbacks(action) do  
           run_model_action(methods,options)

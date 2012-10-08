@@ -89,7 +89,9 @@ SimpleModel is available through [Rubygems](http://rubygems.org/gems/simple_mode
         item.valid?             # => false
         item.my_array           # => [1]
         item.price = 15 
+        item.persisted?         # => false
         item.save               # => true
+        item.persisted?         # => true
         item.changed?           # => false
         item.previous_changes   # => {"price"=>[#<BigDecimal:7fc61b1ba600,'0.1024E4',9(27)>, #<BigDecimal:7fc61b1730e8,'0.15E2',9(27)>], "saved"=>[nil, true]} 
                         
