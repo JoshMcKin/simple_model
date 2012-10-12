@@ -31,6 +31,7 @@ module SimpleModel
         self.send("#{attr.to_s}=",val)
       end
     end
+    alias :set_attributes :set
     
     private
     
