@@ -152,7 +152,7 @@ module SimpleModel
         options[:on_set] = lambda {|attr| attr.to_f }
         create_attribute_methods(attributes,options)
       end
-      alias :hash_floats :has_float
+      alias :has_floats :has_float
     
       def has_date(*attributes)
         options = default_attribute_settings.merge(attributes.extract_options!)
@@ -166,7 +166,7 @@ module SimpleModel
         options[:on_set] = lambda {|attr| attr.to_time }
         create_attribute_methods(attributes,options)
       end
-      alias :hash_times :has_time
+      alias :has_times :has_time
     end
     
     def self.included(base)
