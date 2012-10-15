@@ -4,24 +4,11 @@ module SimpleModel
     require 'date'
     require 'bigdecimal'
     require 'bigdecimal/util'
-  
-    Object.class_eval do
-      
-      # Expects an array of symbols representing methods for casting the object 
-      # EX: "1".cast_to(:float) # => 1.0
-      def cast_to(methods=[])
-        val = self
-        methods.each do |method|
-          val = val.send(method)
-        end
-        val
-      end
-    end
     
     Float.class_eval do   
-      # any value greater than 0.0 is true
+      # that does not equal 0.0 is true
       def to_b
-        self > 0.0
+        self != 0.0
       end
       
       # Rounds float to the precision specified
@@ -124,27 +111,37 @@ module SimpleModel
         Time.parse(safe_datetime_string)
       end
 
-      alias :old_to_f :to_f
+      alias :core_to_f :to_f
 
       # Remove none numeric characters then run default ruby float cast
       def to_f
-        gsub(/[^0-9\.\+\-]/, '').old_to_f
+        gsub(/[^0-9\.\+\-]/, '').core_to_f
       end
-
-      # Cleans all none pertinent characters and returns a BigDecimal rounded to nearest hundredth
-      # Why decimal?..because precision matters when dealing with money ;)
-      def to_currency
-        gsub(/[^0-9\.\+\-]/, '').to_d.round(2)
+      
+      alias :core_to_d :to_d
+      
+      def to_d
+        gsub(/[^0-9\.\+\-]/, '').core_to_d
       end
+      alias :to_currency :to_d
+      
     end
     
     BigDecimal.class_eval do
       def to_currency_s(symbol="$")
         self.to_f.to_currency_s(symbol)
       end 
+      
+      def to_b
+        self != 0.0
+      end
     end
     
     Fixnum.class_eval do
+      def to_currency_s(symbol="$")
+        self.to_f.to_currency_s(symbol)
+      end
+      
       unless Fixnum.instance_methods.include?(:to_b)
         #Any value greater than 0 is true
         def to_b

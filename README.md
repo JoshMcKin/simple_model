@@ -87,6 +87,7 @@ SimpleModel is available through [Rubygems](http://rubygems.org/gems/simple_mode
         item.changes            # => {"price"=>[#<BigDecimal:7fc61b250da8,'0.1E2',9(27)>, #<BigDecimal:7fc61b1ba600,'0.1024E4',9(27)>]}
         item.my_array           # => []
         item.valid?             # => false
+        items.save!             # raises SimpleModel::ValidationError exception
         item.my_array           # => [1]
         item.price = 15 
         item.persisted?         # => false

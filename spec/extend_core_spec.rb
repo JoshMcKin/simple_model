@@ -92,7 +92,7 @@ describe SimpleModel::ExtendCore, 'String.rb' do
   
   context '#to_currency' do
     it "return a BigDecimal from a string that may contain non-numeric values" do
-      "$5,000.006".to_currency.should eql(BigDecimal("5000.01"))
+      "$5,000.006".to_currency.should eql(BigDecimal("5000.006"))
     end
   end
 end

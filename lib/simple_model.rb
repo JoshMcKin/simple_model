@@ -40,9 +40,11 @@ module SimpleModel
   require 'active_support/core_ext/object/blank'
   require 'active_model'
   require "simple_model/extend_core"
+  require 'simple_model/exceptions'
   require "simple_model/attributes"
   require "simple_model/error_helpers"
   require "simple_model/validation"
   require "simple_model/base"
   require 'simple_model/simple_model_railtie.rb' if defined?(Rails)
+  
 end

@@ -32,8 +32,8 @@ module SimpleModel
   # action creates an instance method representing the action, which calls the 
   # method(s) listed as symbols when defining the actions. Model actions also accept 
   # a rollback option, which is called if the action fails. If you plan to 
-  # implement SimpleModel's actions make avoid naming you own methods "save", "destroy",
-  # "create", and "update", as this will override the methods defined by action.
+  # implement SimpleModel's actions, avoid naming you own methods "save", "destroy",
+  # "create", and "update", as these will override the methods defined by action.
   # 
   # Available Actions:
   #   # save
@@ -71,14 +71,10 @@ module SimpleModel
   #     puts "rolled back"
   #   end
   # end
-  # 
-  # 
-  #
  
   class Base
     include SimpleModel::Attributes
     include SimpleModel::ErrorHelpers
-
     #Use ActiveModel Resources
     include ActiveModel::Validations
     include ActiveModel::Conversion
@@ -130,9 +126,16 @@ module SimpleModel
         else
           self.send(options[:rollback]) unless options[:rollback].blank?
         end    
-      else 
+      else
         completed = false
-      end  
+      end
+      if !completed && options[:raise_exception]      
+        if !self.errors.blank?
+          raise ValidationError, self.errors.full_messages.join(" ")
+        else
+          raise ActionError, "failed action: #{methods.join(', ')}"
+        end
+      end 
       completed
     end   
     
@@ -148,13 +151,19 @@ module SimpleModel
       valid
     end   
     
-    # Defines the model action's instance methods and applied defaults.
+    # Defines the model action's instance methods and applied defaults. For every
+    # action defined, we also define that actions ! method which raises exceptions
+    # when the action fails.
     def self.define_model_action(methods,action,default_options={:validate => true})
       default_options.merge!(methods.extract_options!)
-      define_method(action) do |opts = {}|
-        options = default_options.merge(opts)
-        self.run_callbacks(action) do  
-          run_model_action(methods,options)
+      actions = [action,"#{action}!".to_sym]
+      actions.each do |a|
+        define_method(a) do |opts={}|
+          options = default_options.merge(opts)
+          options[:raise_exception] = a.to_s.match(/\!$/)
+          self.run_callbacks(action) do  
+            run_model_action(methods,options)
+          end
         end
       end
     end

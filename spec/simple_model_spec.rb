@@ -1,13 +1,16 @@
 require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 
 describe SimpleModel do
+  
+  after(:each) do
+    Object.send(:remove_const,:TestStuff)
+  end
+  
   context 'action methods' do
-    describe "save" do
-    
+    describe "save" do  
       it "should perform the supplied methods" do
         class TestStuff < SimpleModel::Base
-          save :test
-        
+          save :test  
           attr_accessor :foo
         
           def test
@@ -40,7 +43,6 @@ describe SimpleModel do
     end
   
     describe "destroy" do
-    
       it "should not preform validation by default" do
         class TestStuff < SimpleModel::Base
           destroy :test
@@ -54,6 +56,40 @@ describe SimpleModel do
         t = TestStuff.new
         t.destroy.should be_true
       end
+    end
+    context "action methods that end with '!'" do
+      it 'should raise exception if validation fails' do
+        class TestStuff < SimpleModel::Base
+          save :my_save_method
+          has_attributes :foo
+      
+          def my_save_method
+            false
+          end
+        end
+    
+        t = TestStuff.new
+        lambda {t.save!}.should raise_error(SimpleModel::ActionError)
+      end
+      it 'should raise exception if validation fails' do
+        class TestStuff < SimpleModel::Base
+          save :my_save_method
+          has_attributes :foo
+          validate :validates_bar
+      
+          def my_save_method
+            self.errors.blank?
+          end
+      
+          def validates_bar
+            self.errors.add(:foo, "bar")
+          end
+        end
+    
+        t = TestStuff.new
+        lambda {t.save!}.should raise_error(SimpleModel::ValidationError)
+      end
+      
     end
   end
   
@@ -164,20 +200,5 @@ describe SimpleModel do
     t.changed?.should be_true
     t.save
     t.changed?.should be_false
-  end
-  
+  end  
 end
-
-#describe SimpleModel::Errors do
-#  it 'Should add a error setter' do
-#    class TestError
-#      include SimpleModel::Errors
-#      attr_accessor :test_attr
-#    end
-#    a = TestError.new(self)
-#    a.errors.add(:test_attr, "test")
-#    a.errors?.should be_true
-#
-#    #a.test.should be_false
-#  end
-#end
