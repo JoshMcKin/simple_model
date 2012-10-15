@@ -68,7 +68,7 @@ module SimpleModel
           :on_set => lambda {|obj,attr| attr},
           :on_get => lambda {|obj,attr| attr},
           :allow_blank => true
-          }
+        }
       end
       
       def default_attribute_settings=default_attribute_settings
@@ -101,7 +101,12 @@ module SimpleModel
         end
         define_method("#{attr.to_s}?") do
           val = self.send(attr)
-          val.to_b if val.respond_to?(:to_b)
+          if val.respond_to?(:to_b)
+            val = val.to_b 
+          else
+            val = !val.blank? if val.respond_to?(:blank?)
+          end
+          val
         end
       end
           

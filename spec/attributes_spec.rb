@@ -63,18 +63,29 @@ describe SimpleModel::Attributes do
     it "should initialize with the default value" do
       @default.attributes[:foo].should eql("foo")
     end
+    
     it "should call the method it describe by the default value if it exists" do 
       @default.attributes[:bar].should eql("bar")
     end
+    
     it "should set the defaul to the supplied symbol, if the method does not exist" do 
       @default.attributes[:fab].should eql(:some_symbol)
     end
+    
     it "should allow default value to be an empty array" do
       @default.my_array.should eql([])
     end
+    
     it "should create a boolean? method for each attribute" do
       @default.respond_to?(:foo?).should be_true
     end
+    
+    it "should return !blank?" do
+      @default.my_array?.should be_false
+      @default.my_array << 1
+      @default.my_array?.should be_true
+    end
+    
     it "should not allow blank if set" do
       @default.foo.should eql("foo")
       @default.foo = ""
