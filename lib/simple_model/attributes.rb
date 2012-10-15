@@ -11,7 +11,7 @@ module SimpleModel
     end
     
     def attribute_initialized?(attr)
-      (attributes.keys.include?(attr.to_s) || attributes.keys.include?(attr.to_sym))
+      (attributes.key?(attr.to_s) || attributes.key?(attr.to_sym))
     end
     
     def attributes
