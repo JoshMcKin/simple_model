@@ -65,8 +65,8 @@ module SimpleModel
       
       def default_attribute_settings
         @default_attribute_settings ||= {:attributes_method => :attributes,
-          :on_set => lambda {|attr| attr},
-          :on_get => lambda {|attr| attr}}
+          :on_set => lambda {|obj,attr| attr},
+          :on_get => lambda {|obj,attr| attr}}
       end
       
       def default_attribute_settings=default_attribute_settings
@@ -95,7 +95,7 @@ module SimpleModel
           unless self.initialized?(attr)
             self.attributes[attr] = fetch_default_value(options[:default])
           end
-          options[:on_get].call(self.attributes[attr])
+          options[:on_get].call(self,self.attributes[attr])
         end
         define_method("#{attr.to_s}?") do
           val = self.send(attr)
@@ -108,14 +108,14 @@ module SimpleModel
         options = default_attribute_settings.merge(options) if (options[:on_set].blank? || options[:after_set].blank?) 
         define_method("#{attr.to_s}=") do |val|
           begin
-            val = options[:on_set].call(val)
+            val = options[:on_set].call(self,val)
           rescue NoMethodError => e
             raise ArgumentError, "#{val} could not be set for #{attr}: #{e.message}"
           end
           will_change = "#{attr}_will_change!".to_sym
           self.send(will_change) if (self.respond_to?(will_change) && val != self.attributes[attr])          
           self.attributes[attr] = val
-          options[:after_set].call(attr,val) if options[:after_set] 
+          options[:after_set].call(self,val) if options[:after_set] 
         end
       end
     
@@ -133,7 +133,7 @@ module SimpleModel
       AVAILABLE_ATTRIBUTE_METHODS.each do |method,method_options|   
         define_method(method) do |*attributes|
           options = default_attribute_settings.merge(attributes.extract_options!)
-          options[:on_set] = lambda {|val| val.send(method_options[:cast_to]) } if method_options[:cast_to]
+          options[:on_set] = lambda {|obj,val| val.send(method_options[:cast_to]) } if method_options[:cast_to]
           create_attribute_methods(attributes,options)
         end
         module_eval("alias #{method_options[:alias]} #{method}")
