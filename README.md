@@ -96,8 +96,6 @@ SimpleModel is available through [Rubygems](http://rubygems.org/gems/simple_mode
         item.changed?           # => false
         item.previous_changes   # => {"price"=>[#<BigDecimal:7fc61b1ba600,'0.1024E4',9(27)>, #<BigDecimal:7fc61b1730e8,'0.15E2',9(27)>], "saved"=>[nil, true]} 
                         
-
-
 ## Contributing to simple_model
  
 * Check out the latest master to make sure the feature hasn't been implemented or the bug hasn't been fixed yet
@@ -107,6 +105,10 @@ SimpleModel is available through [Rubygems](http://rubygems.org/gems/simple_mode
 * Commit and push until you are happy with your contribution
 * Make sure to add tests for it. This is important so I don't break it in a future version unintentionally.
 * Please try not to mess with the Rakefile, version, or history. If you want to have your own version, or is otherwise necessary, that is fine, but please isolate to its own commit so I can cherry-pick around it.
+
+## Notes
+
+Release 1.2+ no longer create instance variables, just uses the attributes hash as the data store.
 
 ## Thanks
 
