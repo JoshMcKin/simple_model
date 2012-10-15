@@ -7,7 +7,7 @@ module SimpleModel
     
     def initialize(*attrs)     
       attrs = attrs.extract_options!
-      set(attributes_with_defaults.merge(attrs))
+      set(attributes_with_for_init.merge(attrs))
     end
     
     # Returns true if attribute has been initialized
@@ -45,10 +45,10 @@ module SimpleModel
     end
     
     # Returns attribute that have defaults in a hash: {:attrbute => "default value"}
-    def attributes_with_defaults
+    def attributes_with_for_init
       d = {}
       self.class.defined_attributes.each do |k,v|
-        d[k] = fetch_default_value(v[:default]) if v[:default]
+        d[k] = fetch_default_value(v[:default]) if (v[:default] && v[:initialize])
       end
       d
     end
@@ -63,11 +63,20 @@ module SimpleModel
         @defined_attributes = defined_attributes
       end
       
+      # The default settings for a SimpeModel class
+      # Options:
+      # * :on_set - accepts a lambda that is run when an attribute is set
+      # * :on_get - accepts a lambda that is run when you get/read an attribute
+      # * :default - the default value for the attribute, can be a symbol that is sent for a method
+      # * :initialize - informations the object whether or not it should initialize the attribute with :default value, defaults to true
+      # ** If :intialize is set to false you must set :allow_blank to false or it will never set the default value
+      # * :allow_blank - when set to false, if an attributes value is blank attempts to set the default value, defaults to true
       def default_attribute_settings
         @default_attribute_settings ||= {:attributes_method => :attributes,
           :on_set => lambda {|obj,attr| attr},
           :on_get => lambda {|obj,attr| attr},
-          :allow_blank => true
+          :allow_blank => true,
+          :initialize => true
         }
       end
       

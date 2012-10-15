@@ -37,8 +37,9 @@ describe SimpleModel::Attributes do
         include SimpleModel::Attributes
         has_attribute :foo, :default => "foo", :allow_blank => false
         has_attribute :bar, :default => :default_value
-        has_attribute :fab , :default => :some_symbol
+        has_attribute :fab, :default => :some_symbol
         has_attribute :hop, :default => :default_hop, :allow_blank => false
+        has_attribute :tip, :default => "2", :initialize => false, :allow_blank => false
         has_attribute :nap
         has_attribute :my_array, :default => []
         def default_value
@@ -49,6 +50,9 @@ describe SimpleModel::Attributes do
           "hop" if nap
         end
       end
+    end
+    
+    before(:each) do
       @default = TestDefault.new
     end
 
@@ -59,9 +63,18 @@ describe SimpleModel::Attributes do
     it "should define reader/getter method" do
       @default.respond_to?(:foo).should be_true
     end
-  
-    it "should initialize with the default value" do
-      @default.attributes[:foo].should eql("foo")
+    
+    context ':initialize => false' do
+      it "should not initialize with the default value" do
+        @default.attributes[:tip].should be_nil
+        @default.tip.should eql("2")
+      end
+      context "allow_blank => false"do
+        it "should not initialize, but should set the value on get" do
+          @default.attributes[:tip].should be_nil
+          @default.tip.should eql("2")
+        end
+      end
     end
     
     it "should call the method it describe by the default value if it exists" do 
@@ -81,7 +94,7 @@ describe SimpleModel::Attributes do
     end
     
     it "should return !blank?" do
-      @default.my_array?.should eql([]) # blank array
+      @default.my_array.should eql([]) # blank array
       @default.my_array?.should be_false
       @default.my_array << 1
       @default.my_array?.should be_true
@@ -100,6 +113,8 @@ describe SimpleModel::Attributes do
       @default.nap = "yep"
       @default.hop.should eql("hop")
     end
+    
+    
   end
   
   context "on get" do
