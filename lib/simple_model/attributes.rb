@@ -7,7 +7,7 @@ module SimpleModel
     
     def initialize(*attrs)     
       attrs = attrs.extract_options!
-      set(attributes_with_for_init.merge(attrs))
+      set(attributes_with_for_init(attrs))
     end
     
     # Returns true if attribute has been initialized
@@ -45,10 +45,10 @@ module SimpleModel
     end
     
     # Returns attribute that have defaults in a hash: {:attrbute => "default value"}
-    def attributes_with_for_init
-      d = {}
+    def attributes_with_for_init(attrs)
+      d = attrs.with_indifferent_access
       self.class.defined_attributes.each do |k,v|
-        d[k] = fetch_default_value(v[:default]) if (v[:default] && v[:initialize])
+        d[k] = fetch_default_value(v[:default]) if (d[k].blank? && v[:default] && v[:initialize])
       end
       d
     end
