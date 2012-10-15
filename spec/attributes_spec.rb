@@ -71,6 +71,18 @@ describe SimpleModel::Attributes do
     end
   end
   
+  context "on get" do
+    it "should perform on_get when set" do
+      class OnGet
+        include SimpleModel::Attributes
+        has_attribute :foo, :on_get => lambda{|attr,val| attr = "test" if val.blank?}
+      end
+      
+      new = OnGet.new
+      new.foo.should eql("test")
+    end
+  end
+  
   context 'if supplied value can be cast' do
     it "should throw an exception" do  
       class TestThrow
