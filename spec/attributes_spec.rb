@@ -35,7 +35,7 @@ describe SimpleModel::Attributes do
     before(:all) do
       class TestDefault
         include SimpleModel::Attributes
-        has_attribute :foo, :default => "foo"
+        has_attribute :foo, :default => "foo", :allow_blank => false
         has_attribute :bar, :default => :default_value
         has_attribute :fab , :default => :some_symbol
         has_attribute :my_array, :default => []
@@ -68,6 +68,13 @@ describe SimpleModel::Attributes do
     end
     it "should create a boolean? method for each attribute" do
       @default.respond_to?(:foo?).should be_true
+    end
+    it "should not allow blank if set" do
+      @default.foo.should eql("foo")
+      @default.foo = ""
+      @default.foo.should eql("foo")
+      @default.foo = "not blank"
+      @default.foo.should eql("not blank")
     end
   end
   

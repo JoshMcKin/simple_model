@@ -66,7 +66,9 @@ module SimpleModel
       def default_attribute_settings
         @default_attribute_settings ||= {:attributes_method => :attributes,
           :on_set => lambda {|obj,attr| attr},
-          :on_get => lambda {|obj,attr| attr}}
+          :on_get => lambda {|obj,attr| attr},
+          :allow_blank => true
+          }
       end
       
       def default_attribute_settings=default_attribute_settings
@@ -92,7 +94,7 @@ module SimpleModel
         add_defined_attribute(attr,options)
         options = default_attribute_settings.merge(options) if options[:on_get].blank?
         define_method(attr) do
-          unless self.initialized?(attr)
+          unless (self.initialized?(attr) || (!options[:allow_blank] && options.key?(:default) && self.attributes[attr].blank?))
             self.attributes[attr] = fetch_default_value(options[:default])
           end
           options[:on_get].call(self,self.attributes[attr])
@@ -107,7 +109,8 @@ module SimpleModel
         add_defined_attribute(attr,options)
         options = default_attribute_settings.merge(options) if (options[:on_set].blank? || options[:after_set].blank?) 
         define_method("#{attr.to_s}=") do |val|
-          begin
+          val = fetch_default_value(options[:default]) if (options.key?(:default) && val.blank? && !options[:allow_blank?])
+          begin   
             val = options[:on_set].call(self,val)
           rescue NoMethodError => e
             raise ArgumentError, "#{val} could not be set for #{attr}: #{e.message}"
