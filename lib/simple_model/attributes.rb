@@ -66,7 +66,7 @@ module SimpleModel
       def default_attribute_settings
         @default_attribute_settings ||= {:attributes_method => :attributes,
           :on_set => lambda {|attr| attr},
-          :on_get => lambda {|attr,val| val}}
+          :on_get => lambda {|attr| attr}}
       end
       
       def default_attribute_settings=default_attribute_settings
@@ -95,7 +95,7 @@ module SimpleModel
           unless self.initialized?(attr)
             self.attributes[attr] = fetch_default_value(options[:default])
           end
-          options[:on_get].call(attr,self.attributes[attr])
+          options[:on_get].call(self.attributes[attr])
         end
         define_method("#{attr.to_s}?") do
           val = self.send(attr)

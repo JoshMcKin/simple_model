@@ -75,11 +75,13 @@ describe SimpleModel::Attributes do
     it "should perform on_get when set" do
       class OnGet
         include SimpleModel::Attributes
-        has_attribute :foo, :on_get => lambda{|attr,val| attr = "test" if val.blank?}
+        has_attribute :foo, :on_get => lambda{|attr| (attr.blank? ? "test" : attr)}
       end
       
       new = OnGet.new
       new.foo.should eql("test")
+      new.foo = "foo"
+      new.foo.should eql("foo")
     end
   end
   
