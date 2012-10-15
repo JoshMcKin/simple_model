@@ -118,7 +118,7 @@ module SimpleModel
         end
       end
     
-      AVAILABLE_CAST_METHODS = {
+      AVAILABLE_ATTRIBUTE_METHODS = {
         :has_attribute => {:alias => :has_attributes},
         :has_boolean  => {:cast_to => :to_b, :alias => :has_booleans},
         :has_currency => {:cast_to => :to_d, :alias => :has_currencies},
@@ -129,7 +129,7 @@ module SimpleModel
         :has_time => {:cast_to => :to_time, :alias => :has_times}  
       }
       
-      AVAILABLE_CAST_METHODS.each do |method,method_options|   
+      AVAILABLE_ATTRIBUTE_METHODS.each do |method,method_options|   
         define_method(method) do |*attributes|
           options = default_attribute_settings.merge(attributes.extract_options!)
           options[:on_set] = lambda {|val| val.send(method_options[:cast_to]) } if method_options[:cast_to]

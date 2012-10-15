@@ -20,8 +20,8 @@ describe SimpleModel::Attributes do
     @init.attributes[:test2].should eql("2")
   end
   
-  context "availble data types" do
-    SimpleModel::Attributes::ClassMethods::AVAILABLE_CAST_METHODS.each do |m,options|
+  context "AVAILABLE_ATTRIBUTE_METHODS" do
+    SimpleModel::Attributes::ClassMethods::AVAILABLE_ATTRIBUTE_METHODS.each do |m,options|
       it "should respond to #{m}" do
         TestInit.respond_to?(m).should be_true
       end
