@@ -10,8 +10,9 @@ module SimpleModel
       set(attributes_with_defaults.merge(attrs))
     end
     
-    def attribute_initialized?(attr)
-      (attributes.key?(attr.to_s) || attributes.key?(attr.to_sym))
+    # Returns true if attribute has been initialized
+    def initialized?(attr)
+      attributes.key?(attr.to_sym)
     end
     
     def attributes
@@ -91,7 +92,7 @@ module SimpleModel
         add_defined_attribute(attr,options)
         options = default_attribute_settings.merge(options) if options[:on_get].blank?
         define_method(attr) do
-          unless self.attribute_initialized?(attr)
+          unless self.initialized?(attr)
             self.attributes[attr] = fetch_default_value(options[:default])
           end
           options[:on_get].call(attr,self.attributes[attr])
