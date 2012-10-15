@@ -81,6 +81,7 @@ describe SimpleModel::Attributes do
     end
     
     it "should return !blank?" do
+      @default.my_array?.should eql([]) # blank array
       @default.my_array?.should be_false
       @default.my_array << 1
       @default.my_array?.should be_true
