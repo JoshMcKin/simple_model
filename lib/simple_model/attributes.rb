@@ -102,10 +102,10 @@ module SimpleModel
         define_method("#{attr.to_s}?") do
           val = self.send(attr)
           if val.respond_to?(:to_b)
-            val = val.to_b 
-          else
-            val = !val.blank? if val.respond_to?(:blank?)
-          end
+              val = val.to_b 
+            else
+              val = !val.blank? if val.respond_to?(:blank?)
+            end
           val
         end
       end
@@ -114,7 +114,7 @@ module SimpleModel
         add_defined_attribute(attr,options)
         options = default_attribute_settings.merge(options) if (options[:on_set].blank? || options[:after_set].blank?) 
         define_method("#{attr.to_s}=") do |val|
-          val = fetch_default_value(options[:default]) if (!options[:allow_blank?] && options.key?(:default) && val.blank?)
+          val = fetch_default_value(options[:default]) if (!options[:allow_blank] && options.key?(:default) && val.blank?)
           begin   
             val = options[:on_set].call(self,val)
           rescue NoMethodError => e
