@@ -38,9 +38,15 @@ describe SimpleModel::Attributes do
         has_attribute :foo, :default => "foo", :allow_blank => false
         has_attribute :bar, :default => :default_value
         has_attribute :fab , :default => :some_symbol
+        has_attribute :hop, :default => :default_hop, :allow_blank => false
+        has_attribute :nap
         has_attribute :my_array, :default => []
         def default_value
           "bar"
+        end
+        
+        def default_hop
+          "hop" if nap
         end
       end
       @default = TestDefault.new
@@ -75,6 +81,12 @@ describe SimpleModel::Attributes do
       @default.foo.should eql("foo")
       @default.foo = "not blank"
       @default.foo.should eql("not blank")
+    end
+    
+    it "should try for the default if its blank on get" do
+      @default.hop.blank?.should be_true
+      @default.nap = "yep"
+      @default.hop.should eql("hop")
     end
   end
   

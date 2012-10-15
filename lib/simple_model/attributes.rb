@@ -94,7 +94,7 @@ module SimpleModel
         add_defined_attribute(attr,options)
         options = default_attribute_settings.merge(options) if options[:on_get].blank?
         define_method(attr) do
-          unless (self.initialized?(attr) || (!options[:allow_blank] && options.key?(:default) && self.attributes[attr].blank?))
+          if (options.key?(:default) && (!self.initialized?(attr) || (!options[:allow_blank] && self.attributes[attr].blank?)))
             self.attributes[attr] = fetch_default_value(options[:default])
           end
           options[:on_get].call(self,self.attributes[attr])
@@ -109,7 +109,7 @@ module SimpleModel
         add_defined_attribute(attr,options)
         options = default_attribute_settings.merge(options) if (options[:on_set].blank? || options[:after_set].blank?) 
         define_method("#{attr.to_s}=") do |val|
-          val = fetch_default_value(options[:default]) if (options.key?(:default) && val.blank? && !options[:allow_blank?])
+          val = fetch_default_value(options[:default]) if (!options[:allow_blank?] && options.key?(:default) && val.blank?)
           begin   
             val = options[:on_set].call(self,val)
           rescue NoMethodError => e
