@@ -6,7 +6,7 @@ module SimpleModel
     include ActiveModel::AttributeMethods 
     
     def initialize(*attrs)     
-      attrs = attrs.extract_options!
+      attrs = attrs.extract_options! 
       set(attributes_with_for_init(attrs))
     end
     
@@ -53,7 +53,26 @@ module SimpleModel
       d
     end
     
-    module ClassMethods
+    module ClassMethods    
+      # Creates a new instance where the attributes store is set to object
+      # provided, which allows one to pass a session store hash or any other
+      # hash-like object to be used for persistance. Typically used for modeling
+      # session stores for authorization or shopping carts
+      # EX: 
+      #     class ApplicationController < ActionController::Base
+      #       def session_user
+      #         session[:user] ||= {}
+      #         @session_user ||= SessionUser.new_with_store(session[:user])
+      #       end
+      #       helper_method :session_user
+      #      end
+      #
+      def self.new_with_store(session_hash)
+        new = self.new()
+        new.attributes = session_hash
+        new.set(new.send(:attributes_with_for_init,session_hash))
+        new
+      end
       
       def defined_attributes
         @defined_attributes ||= {}
@@ -111,10 +130,10 @@ module SimpleModel
         define_method("#{attr.to_s}?") do
           val = self.send(attr)
           if val.respond_to?(:to_b)
-              val = val.to_b 
-            else
-              val = !val.blank? if val.respond_to?(:blank?)
-            end
+            val = val.to_b 
+          else
+            val = !val.blank? if val.respond_to?(:blank?)
+          end
           val
         end
       end
