@@ -144,7 +144,7 @@ SimpleModel is available through [Rubygems](http://rubygems.org/gems/simple_mode
 
 ## Notes
 
-Release 1.2+ no longer create instance variables, just uses the attributes hash as the data store.
+Release 1.2+ no longer creates instance variables, just uses the attributes hash as the data store.
 
 ## Thanks
 
