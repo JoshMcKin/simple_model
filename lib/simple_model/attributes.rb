@@ -67,7 +67,7 @@ module SimpleModel
       #       helper_method :session_user
       #      end
       #
-      def self.new_with_store(session_hash)
+      def new_with_store(session_hash)
         new = self.new()
         new.attributes = session_hash
         new.set(new.send(:attributes_with_for_init,session_hash))
