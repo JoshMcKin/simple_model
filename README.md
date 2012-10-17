@@ -95,7 +95,43 @@ SimpleModel is available through [Rubygems](http://rubygems.org/gems/simple_mode
         item.persisted?         # => true
         item.changed?           # => false
         item.previous_changes   # => {"price"=>[#<BigDecimal:7fc61b1ba600,'0.1024E4',9(27)>, #<BigDecimal:7fc61b1730e8,'0.15E2',9(27)>], "saved"=>[nil, true]} 
-                        
+
+### Rails Session Modeling                        
+      require 'simple_model'
+
+        class SessionUser < SimpleModel::Base
+          has_attributes :permissions, :default => []
+          
+          # Returns true only if all required permission are set
+          def authorized?(*required_permissions)
+            (permissions == (required_permissions | permissions))
+          end
+
+           #... lots of other handy methods...#
+        end
+
+        class ApplicationController < ActionController::Base
+          #... omitted for space ...#
+          # Initialize, if necessary, and return our session user object
+          def session_user
+            session[:user] ||= {:permissions => [:foo,:baz]}
+            @session_user  ||= SessionUser.new_with_store(session[:user])
+          end
+          helper_method :session_user
+
+          private
+
+          # redirect if not authorized
+          def authorize(*required_permissions)
+            redirect_to '/sessions/error' unless session_user.authorized?(*required_permissions)
+          end
+        end
+
+        class FoosController < ApplicationController
+          before_filter do |c| c.send(:authorize,:foo) # Make sure session user has permission
+        end
+        
+
 ## Contributing to simple_model
  
 * Check out the latest master to make sure the feature hasn't been implemented or the bug hasn't been fixed yet
