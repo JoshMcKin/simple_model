@@ -20,6 +20,16 @@ describe SimpleModel::Attributes do
     @init.attributes[:test2].should eql("2")
   end
   
+  context '#new_with_store'do
+    it "should use the provided object as the attribute store" do
+      my_store = {:test1 => 1,:test2 => 2}
+      new = TestInit.new_with_store(my_store)
+      new.test1 = 3
+      new.test1.should eql(3)
+      my_store[:test1].should eql(new.test1)
+    end
+  end
+  
   context "AVAILABLE_ATTRIBUTE_METHODS" do
     SimpleModel::Attributes::ClassMethods::AVAILABLE_ATTRIBUTE_METHODS.each do |m,options|
       it "should respond to #{m}" do
@@ -145,5 +155,13 @@ describe SimpleModel::Attributes do
       lambda{TestThrow.new(:boo => [])}.should raise_error(SimpleModel::ArgumentError)
     end
         
+  end
+  
+  
+  after(:all) do
+    Object.send(:remove_const,:TestThrow)
+    Object.send(:remove_const,:OnGet)
+    Object.send(:remove_const,:TestDefault)
+    Object.send(:remove_const,:TestInit)
   end
 end

@@ -65,7 +65,7 @@ module SimpleModel
       #         @session_user ||= SessionUser.new_with_store(session[:user])
       #       end
       #       helper_method :session_user
-      #      end
+      #     end
       #
       def new_with_store(session_hash)
         new = self.new()
