@@ -73,6 +73,7 @@ module SimpleModel
         new.set(new.send(:attributes_with_for_init,session_hash))
         new
       end
+     
       
       def defined_attributes
         @defined_attributes ||= {}
@@ -174,6 +175,17 @@ module SimpleModel
         end
         module_eval("alias #{method_options[:alias]} #{method}")
       end
+      
+      
+      def alias_attribute(new_alias,attribute)
+          define_method(new_alias) do 
+            self.send(attribute)
+          end
+          define_method("#{new_alias.to_s}=") do |*args, &block|
+            self.send("#{attribute.to_s}=",*args, &block)
+          end
+      end
+      
     end
     
     def self.included(base)

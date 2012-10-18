@@ -154,6 +154,22 @@ describe SimpleModel::Attributes do
       
       lambda{TestThrow.new(:boo => [])}.should raise_error(SimpleModel::ArgumentError)
     end
+  context '#alias_attribute' do
+    it "should create alias for attribute" do
+      class TestAlias
+        include SimpleModel::Attributes
+        has_attribute :foo
+        alias_attribute(:bar,:foo)
+      end
+      
+      t = TestAlias.new(:bar => "foo")
+      t.bar.should eql("foo")
+      t.foo.should eql('foo')
+      t = TestAlias.new(:foo => "foo")
+      t.bar.should eql("foo")
+      t.foo.should eql('foo')
+    end
+  end
         
   end
   
