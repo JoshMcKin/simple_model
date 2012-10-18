@@ -158,7 +158,7 @@ describe SimpleModel::Attributes do
     it "should create alias for attribute" do
       class TestAlias
         include SimpleModel::Attributes
-        has_attribute :foo
+        has_attribute :foo, :default => "bar"
         alias_attribute(:bar,:foo)
       end
       

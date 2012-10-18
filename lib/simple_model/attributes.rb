@@ -45,14 +45,21 @@ module SimpleModel
     end
     
     # Returns attribute that have defaults in a hash: {:attrbute => "default value"}
+    # Checks for alias attributes to ensure they are not overwritten
     def attributes_with_for_init(attrs)
       d = attrs.with_indifferent_access
       self.class.defined_attributes.each do |k,v|
-        d[k] = fetch_default_value(v[:default]) if (d[k].blank? && v[:default] && v[:initialize])
+        if allow_set_default?(d,k,v)
+          d[k] = fetch_default_value(v[:default])
+        end
       end
       d
     end
     
+    def allow_set_default?(d,k,v)
+      (v[:default] && v[:initialize] && (d[k].blank? && (self.class.alias_attributes[k].blank? || d.key?(self.class.alias_attributes[k]) && d[self.class.alias_attributes[k]].blank?)))
+    end
+       
     module ClassMethods    
       # Creates a new instance where the attributes store is set to object
       # provided, which allows one to pass a session store hash or any other
@@ -74,9 +81,12 @@ module SimpleModel
         new
       end
      
+      def alias_attributes
+        @alias_attributes ||= {}.with_indifferent_access
+      end
       
       def defined_attributes
-        @defined_attributes ||= {}
+        @defined_attributes ||= {}.with_indifferent_access
       end
       
       def defined_attributes=defined_attributes
@@ -179,6 +189,7 @@ module SimpleModel
       # Creates alias setter and getter for the supplied attribute using the supplied alias
       # See spec for example.
       def alias_attribute(new_alias,attribute)
+        alias_attributes[attribute] = new_alias
         define_method(new_alias) do 
           self.send(attribute)
         end
