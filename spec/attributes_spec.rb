@@ -60,6 +60,7 @@ describe SimpleModel::Attributes do
           "hop" if nap
         end
       end
+      
     end
     
     before(:each) do
@@ -154,30 +155,44 @@ describe SimpleModel::Attributes do
       
       lambda{TestThrow.new(:boo => [])}.should raise_error(SimpleModel::ArgumentError)
     end
-  context '#alias_attribute' do
-    it "should create alias for attribute" do
-      class TestAlias
-        include SimpleModel::Attributes
-        has_attribute :foo, :default => "bar"
-        alias_attribute(:bar,:foo)
-      end
+    context '#alias_attribute' do
+      it "should create alias for attribute" do
+        class TestAlias
+          include SimpleModel::Attributes
+          has_attribute :foo, :default => "bar"
+          alias_attribute(:bar,:foo)
+        end
       
-      t = TestAlias.new(:bar => "foo")
-      t.bar.should eql("foo")
-      t.foo.should eql('foo')
-      t = TestAlias.new(:foo => "foo")
-      t.bar.should eql("foo")
-      t.foo.should eql('foo')
+        t = TestAlias.new(:bar => "foo")
+        t.bar.should eql("foo")
+        t.foo.should eql('foo')
+        t = TestAlias.new(:foo => "foo")
+        t.bar.should eql("foo")
+        t.foo.should eql('foo')
+      end
+    end   
+  end
+  
+  context "regression tests" do
+    it "should merge defined attributes when class are inhereted" do
+      class MyBase
+        include SimpleModel::Attributes
+        has_boolean :bar
+      end
+    
+      class NewerBase < MyBase
+        has_boolean :foo
+      end
+    
+      NewerBase.defined_attributes[:bar].blank?.should be_false
+      n = NewerBase.new
+      n.respond_to?(:bar_will_change!).should be_true
     end
   end
-        
-  end
-  
   
   after(:all) do
-    Object.send(:remove_const,:TestThrow)
-    Object.send(:remove_const,:OnGet)
-    Object.send(:remove_const,:TestDefault)
-    Object.send(:remove_const,:TestInit)
+    [:TestThrow,:OnGet,:TestDefault,:TestInit,:MyBase,:NewerBase].each do |test_klass|
+      Object.send(:remove_const,test_klass)
+    end
   end
 end

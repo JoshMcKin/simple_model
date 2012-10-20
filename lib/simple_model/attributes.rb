@@ -60,7 +60,7 @@ module SimpleModel
       (v[:default] && v[:initialize] && (d[k].blank? && (self.class.alias_attributes[k].blank? || d.key?(self.class.alias_attributes[k]) && d[self.class.alias_attributes[k]].blank?)))
     end
        
-    module ClassMethods    
+    module ClassMethods  
       # Creates a new instance where the attributes store is set to object
       # provided, which allows one to pass a session store hash or any other
       # hash-like object to be used for persistance. Typically used for modeling
@@ -80,9 +80,13 @@ module SimpleModel
         new.set(new.send(:attributes_with_for_init,session_hash))
         new
       end
-     
+      
       def alias_attributes
         @alias_attributes ||= {}.with_indifferent_access
+      end
+      
+      def alias_attributes=alias_attributes
+        @alias_attributes = alias_attributes
       end
       
       def defined_attributes
@@ -116,7 +120,7 @@ module SimpleModel
     
       def add_defined_attribute(attr,options)
         self.defined_attributes[attr] = options
-        define_attribute_methods self.defined_attributes.keys
+        define_attribute_methods [attr]
       end
       
       # builds the setter and getter methods
@@ -148,7 +152,10 @@ module SimpleModel
           val
         end
       end
-          
+      
+      # Creates setter methods for the provided attributes
+      # On set, it will mark the attribute as changed if the attributes has been 
+      # initialized.
       def define_setter_with_options(attr,options)
         add_defined_attribute(attr,options)
         options = default_attribute_settings.merge(options) if (options[:on_set].blank? || options[:after_set].blank?) 
@@ -160,7 +167,7 @@ module SimpleModel
             raise ArgumentError, "#{val} could not be set for #{attr}: #{e.message}"
           end
           will_change = "#{attr}_will_change!".to_sym
-          self.send(will_change) if (self.respond_to?(will_change) && val != self.attributes[attr])          
+          self.send(will_change) if (initialized?(attr) && val != self.attributes[attr])       
           self.attributes[attr] = val
           options[:after_set].call(self,val) if options[:after_set] 
         end
@@ -197,11 +204,41 @@ module SimpleModel
           self.send("#{attribute.to_s}=",*args, &block)
         end
       end
+      
+      # Must inherit super's defined_attributes and alias_attributes
+      # Rails 3.0 does some weird stuff with ActiveModel::Dirty so we need a
+      # hack to keep things working when a class in inherits from a super that 
+      # has ActiveModel::Dirty included
+      def inherited(base)
+        # Rails 3.0 Hack
+        if (ActiveModel::VERSION::MAJOR == 3 && ActiveModel::VERSION::MINOR == 0)
+          base.send(:include, ActiveModel::Dirty)
+          base.attribute_method_suffix '_changed?', '_change', '_will_change!', '_was'
+          base.attribute_method_affix :prefix => 'reset_', :suffix => '!'
+        end
+        
+        base.defined_attributes = self.defined_attributes.merge(base.defined_attributes)
+        base.alias_attributes = self.alias_attributes.merge(base.alias_attributes ) 
+      end
     end
     
+    # Rails 3.0 does some weird stuff with ActiveModel::Dirty so we need a 
+    # hack to keep things working when a class includes a module that has 
+    # ActiveModel::Dirty included
     def self.included(base)
-      base.extend(Attributes::ClassMethods)
-      base.send(:include, ActiveModel::Dirty) if base.is_a?(Class) # Add Dirty to the class
+      base.extend(Attributes::ClassMethods) 
+      base.send(:include, ActiveModel::Dirty) 
+      base.send(:include, ActiveModel::Validations)
+      base.send(:include, ActiveModel::Conversion)
+      base.extend ActiveModel::Naming
+      base.extend ActiveModel::Callbacks
+      base.send(:include, ActiveModel::Validations::Callbacks)
+      
+      # Rails 3.0 Hack
+      if (ActiveModel::VERSION::MAJOR == 3 && ActiveModel::VERSION::MINOR == 0)
+          base.attribute_method_suffix '_changed?', '_change', '_will_change!', '_was'
+          base.attribute_method_affix :prefix => 'reset_', :suffix => '!'
+      end
     end
   end
 end

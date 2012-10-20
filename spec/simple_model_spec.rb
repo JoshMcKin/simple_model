@@ -2,9 +2,7 @@ require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 
 describe SimpleModel do
   
-  after(:each) do
-    Object.send(:remove_const,:TestStuff)
-  end
+  
   
   context 'action methods' do
     describe "save" do  
@@ -188,6 +186,7 @@ describe SimpleModel do
     class TestStuff < SimpleModel::Base
       save :my_save_method
       has_attributes :foo,:bar, :default => "def"
+      has_boolean :boo,:bad, :default => true
       def my_save_method
         true
       end
@@ -196,9 +195,39 @@ describe SimpleModel do
     t = TestStuff.new
     t.foo = "bar"
     t.foo_changed?.should be_true
+    t.respond_to?(:foo_will_change!).should be_true
+    t.respond_to?(:boo_will_change!).should be_true
     t.foo_change.should eql(["def","bar"])
     t.changed?.should be_true
     t.save
     t.changed?.should be_false
-  end  
+  end 
+  
+  context "regression tests" do
+    before(:each) do
+      class TestStuff < SimpleModel::Base
+        has_attribute :bar
+      end
+    
+      class NewTestStuff < TestStuff
+        has_boolean :foo
+      end
+    end
+    it "should merge defined attributes when class are inhereted" do
+      NewTestStuff.defined_attributes[:bar].blank?.should be_false
+      NewTestStuff.defined_attributes[:foo].blank?.should be_false
+    end
+    it "should merge defined attributes when class are inhereted" do
+      TestStuff.new.respond_to?(:bar_will_change!).should be_true
+      NewTestStuff.new.respond_to?(:bar_will_change!).should be_true
+      NewTestStuff.new.respond_to?(:foo_will_change!).should be_true
+    end
+    after(:each) do
+      Object.send(:remove_const,:NewTestStuff)
+    end
+  end
+  
+  after(:each) do
+    Object.send(:remove_const,:TestStuff)
+  end
 end
