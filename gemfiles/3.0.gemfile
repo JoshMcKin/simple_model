@@ -1,6 +1,5 @@
 source "http://rubygems.org"
 
-gem 'rake'
 gem 'activesupport','~> 3.0.1'
 gem 'activemodel','~> 3.0.1'
 
