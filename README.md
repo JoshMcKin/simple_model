@@ -1,4 +1,5 @@
 # SimpleModel
+[![Build Status](https://secure.travis-ci.org/JoshMcKin/simple_model.png)](http://travis-ci.org/JoshMcKin/simple_model)
 A collection of convenience methods for building table-less models. 
 SimpleModel implements:
 
