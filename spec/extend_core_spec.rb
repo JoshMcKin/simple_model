@@ -80,7 +80,6 @@ describe SimpleModel::ExtendCore, 'String.rb' do
     it "should handle C# JSON datetime stamp" do
       lambda {"\/Date(1310669017000)\/".to_time}.should_not raise_error  
       "\/Date(1310669017000)\/".to_time.should be_kind_of(Time)
-      "\/Date(1310669017000)\/".to_time.should eql(Time.parse("2011-07-14 13:43:37 CTS"))
     end
   end
   
