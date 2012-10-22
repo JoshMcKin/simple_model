@@ -1,9 +1,6 @@
 require File.expand_path(File.dirname(__FILE__) + '/spec_helper')
 
-describe SimpleModel do
-  
-  
-  
+describe SimpleModel do 
   context 'action methods' do
     describe "save" do  
       it "should perform the supplied methods" do
@@ -208,6 +205,10 @@ describe SimpleModel do
       class TestStuff < SimpleModel::Base
         has_attribute :bar
       end
+      
+      class OtherStuff < SimpleModel::Base
+        has_attribute :bar
+      end
     
       class NewTestStuff < TestStuff
         has_boolean :foo
@@ -219,6 +220,8 @@ describe SimpleModel do
     end
     it "should merge defined attributes when class are inhereted" do
       TestStuff.new.respond_to?(:bar_will_change!).should be_true
+      t = OtherStuff.new
+      t.bar = [1,2,4]
       NewTestStuff.new.respond_to?(:bar_will_change!).should be_true
       NewTestStuff.new.respond_to?(:foo_will_change!).should be_true
     end
