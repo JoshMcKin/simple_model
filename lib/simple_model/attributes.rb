@@ -118,9 +118,13 @@ module SimpleModel
         @default_attribute_settings = default_attribute_settings
       end
     
+      # We want to re-run define_attribute_methods since attributes are not all defined
+      # at once, so we must set @attribute_methods_generated to nil to allow the
+      # re-run to occur ONLY IN RAILS 3.0.
       def add_defined_attribute(attr,options)
         self.defined_attributes[attr] = options
-        define_attribute_methods [attr]
+        @attribute_methods_generated = nil if (ActiveModel::VERSION::MAJOR == 3 && ActiveModel::VERSION::MINOR == 0)
+        define_attribute_methods self.defined_attributes.keys
       end
       
       # builds the setter and getter methods
