@@ -12,8 +12,8 @@ Gem::Specification.new do |s|
   s.summary     = %q{Simpifies building tableless models or models backed by webservices}
   s.description = %q{Simpifies building tableless models or models backed by webservices. Create data type specific attributes with default if values.}
 
-  s.add_runtime_dependency 'activesupport','~> 3.0.1'
-  s.add_runtime_dependency 'activemodel','~> 3.0.1'
+  s.add_runtime_dependency 'activesupport','~> 3.0'
+  s.add_runtime_dependency 'activemodel','~> 3.0'
 
   s.add_development_dependency 'rspec'
   s.add_development_dependency 'autotest'
