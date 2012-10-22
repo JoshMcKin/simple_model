@@ -20,6 +20,50 @@ describe SimpleModel::Attributes do
     @init.attributes[:test2].should eql("2")
   end
   
+  context '#before_initialize' do
+    before(:all) do
+      class TestInit
+        include SimpleModel::Attributes
+        # Do not initalize blank attributes
+        self.before_initialize = lambda {|obj,attrs| attrs.select{|k,v| !v.blank?}}
+        has_attribute :far
+      end
+    end
+      
+    it "should raise an exception if we try to set to something other than a Proc" do
+      lambda {TestInit.before_initialize = "bad stuff"}.should raise_error
+    end
+      
+    it "should run the supplied lambda" do
+      t = TestInit.new(:far => "")
+      t.initialized?(:far).should be_false
+      t = TestInit.new(:far => "t")
+      t.initialized?(:far).should be_true
+    end
+    
+  end
+  
+  context '#after_initialize' do
+    before(:all) do
+      class TestInit
+        include SimpleModel::Attributes
+        # Do not initalize blank attributes
+        self.after_initialize = lambda { |obj| obj.car = "test" if obj.car.blank?}
+        has_attribute :car
+      end
+    end
+    
+    it "should raise an exception if we try to set to something other than a Proc" do
+      lambda {TestInit.after_initialize = "bad stuff"}.should raise_error
+    end
+    
+    it "should run the supplied lambda" do
+      t = TestInit.new(:far => "")
+      t.car.should eql("test")
+    end
+    
+  end
+  
   context '#new_with_store'do
     it "should use the provided object as the attribute store" do
       my_store = {:test1 => 1,:test2 => 2}
@@ -127,10 +171,12 @@ describe SimpleModel::Attributes do
   end
   
   context 'options with conditional' do
-    class WithConditional
-      include SimpleModel::Attributes
-      has_date :my_date, :if => lambda {|obj,val| !val.blank?}
-      has_date :my_other_date, :unless => :blank
+    before(:all) do
+      class WithConditional
+        include SimpleModel::Attributes
+        has_date :my_date, :if => lambda {|obj,val| !val.blank?}
+        has_date :my_other_date, :unless => :blank
+      end
     end
     it "should not raise error" do
       new = WithConditional.new(:my_date => nil)
@@ -162,14 +208,15 @@ describe SimpleModel::Attributes do
   end
   
   context 'if supplied value can be cast' do
+    before(:all) do
+      class TestAlias
+        include SimpleModel::Attributes
+        has_attribute :foo, :default => "bar"
+        alias_attribute(:bar,:foo)
+      end
+    end
     context '#alias_attribute' do
       it "should create alias for attribute" do
-        class TestAlias
-          include SimpleModel::Attributes
-          has_attribute :foo, :default => "bar"
-          alias_attribute(:bar,:foo)
-        end
-      
         t = TestAlias.new(:bar => "foo")
         t.bar.should eql("foo")
         t.foo.should eql('foo')
@@ -199,7 +246,7 @@ describe SimpleModel::Attributes do
   
   after(:all) do
     [:OnGet,:TestDefault,:TestInit,:MyBase,:NewerBase].each do |test_klass|
-      Object.send(:remove_const,test_klass)
+      Object.send(:remove_const,test_klass) if defined?(test_klass)
     end
   end
 end

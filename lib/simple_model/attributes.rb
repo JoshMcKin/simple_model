@@ -3,10 +3,13 @@ module SimpleModel
     include ExtendCore
     extend ActiveSupport::Concern
     include ActiveModel::AttributeMethods 
-    
+      
     def initialize(*attrs)     
       attrs = attrs.extract_options! 
-      set(attributes_with_for_init(attrs))
+      attrs = attributes_with_for_init(attrs)
+      attrs = self.class.before_initialize.call(self,attrs) if self.class.before_initialize
+      set(attrs)
+      self.class.after_initialize.call(self) if self.class.after_initialize
     end
     
     # Returns true if attribute has been initialized
@@ -229,6 +232,37 @@ module SimpleModel
         define_method("#{new_alias.to_s}=") do |*args, &block|
           self.send("#{attribute.to_s}=",*args, &block)
         end
+      end
+      
+      # A hook to perform actions on the pending attributes or the object before
+      # the pending attributes have been initialized.
+      # Expects an lambda that accept the object, the pending attributes hash and
+      # should return a hash to be set
+      # EX: lambda {|obj,attrs| attrs.select{|k,v| !v.blank?}}
+      def before_initialize
+        @before_initialize
+      end
+      
+      # Expects an lambda that accept the object, the pending attributes hash and
+      # should return a hash to be set
+      # EX: lambda {|obj,attrs| attrs.select{|k,v| !v.blank?}}  
+      def before_initialize=before_initialize
+        raise TypeError "before_initialize must be a lambda that accepts the attirbutes to be initialize" unless before_initialize.is_a?(Proc)
+        @before_initialize = before_initialize
+      end
+    
+      # A hook to perform actions after all attributes have been initialized
+      # Expects an lambda that accept the object and the pending attributes hash
+      # EX: lambda{|obj| puts "initialized"}
+      def after_initialize
+        @after_initialize
+      end
+      
+      # Expects an lambda that accept the object and the pending attributes hash
+      # EX: lambda{|obj| puts "initialized"}
+      def after_initialize=after_initialize
+        raise TypeError "after_initalize must be a Proc" unless after_initialize.is_a?(Proc)
+        @after_initialize = after_initialize
       end
       
       # Must inherit super's defined_attributes and alias_attributes
