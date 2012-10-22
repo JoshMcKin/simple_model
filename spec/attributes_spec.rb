@@ -123,16 +123,31 @@ describe SimpleModel::Attributes do
       @default.hop.blank?.should be_true
       @default.nap = "yep"
       @default.hop.should eql("hop")
+    end  
+  end
+  
+  context 'options with conditional' do
+    class WithConditional
+      include SimpleModel::Attributes
+      has_date :my_date, :if => lambda {|obj,val| !val.blank?}
+      has_date :my_other_date, :unless => :blank
+    end
+    it "should not raise error" do
+      new = WithConditional.new(:my_date => nil)
+      new.initialized?(:my_date).should be_false
     end
     
-    
+    it "should call blank on val if :blank is supplied" do
+      new = WithConditional.new(:my_other_date => nil)
+      new.initialized?(:my_other_date).should be_false
+    end
   end
   
   context "on get" do
     it "should perform on_get when set" do
       class OnGet
         include SimpleModel::Attributes
-        has_attribute :foo, :on_get => lambda{|obj,attr| (attr.blank? ? obj.send(:foo_default) : attr)}
+        has_attribute :foo, :on_get => lambda{|obj,attr,options| (attr.blank? ? obj.send(:foo_default) : attr)}
         
         def foo_default
           "test"
@@ -147,14 +162,6 @@ describe SimpleModel::Attributes do
   end
   
   context 'if supplied value can be cast' do
-    it "should throw an exception" do  
-      class TestThrow
-        include SimpleModel::Attributes
-        has_booleans :boo
-      end 
-      
-      lambda{TestThrow.new(:boo => [])}.should raise_error(SimpleModel::ArgumentError)
-    end
     context '#alias_attribute' do
       it "should create alias for attribute" do
         class TestAlias
@@ -191,7 +198,7 @@ describe SimpleModel::Attributes do
   end
   
   after(:all) do
-    [:TestThrow,:OnGet,:TestDefault,:TestInit,:MyBase,:NewerBase].each do |test_klass|
+    [:OnGet,:TestDefault,:TestInit,:MyBase,:NewerBase].each do |test_klass|
       Object.send(:remove_const,test_klass)
     end
   end

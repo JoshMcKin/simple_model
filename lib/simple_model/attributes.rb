@@ -1,4 +1,3 @@
-require 'simple_model/exceptions'
 module SimpleModel
   module Attributes
     include ExtendCore
@@ -59,6 +58,30 @@ module SimpleModel
     def allow_set_default?(d,k,v)
       (v[:default] && v[:initialize] && (d[k].blank? && (self.class.alias_attributes[k].blank? || d.key?(self.class.alias_attributes[k]) && d[self.class.alias_attributes[k]].blank?)))
     end
+    
+    private
+    
+    def allow_attribute_action?(obj,val,options)
+      return true if (options[:if].blank? && options[:unless].blank?)
+      b = true
+      if options[:if].is_a?(Symbol)
+        if options[:if] == :blank
+          b =  (b && val.blank?)
+        else
+          b = (b && send(options[:if]))
+        end
+      end
+      b = (b && options[:if].call(obj,val)) if options[:if].is_a?(Proc)
+      if options[:unless].is_a?(Symbol)
+        if options[:unless] == :blank
+          b = (b && !val.blank?)
+        else
+          b = (b && !send(options[:unless]))
+        end
+      end
+      b = (b && !options[:unless].call(obj,val)) if options[:unless].is_a?(Proc)
+      b
+    end
        
     module ClassMethods  
       # Creates a new instance where the attributes store is set to object
@@ -107,8 +130,8 @@ module SimpleModel
       # * :allow_blank - when set to false, if an attributes value is blank attempts to set the default value, defaults to true
       def default_attribute_settings
         @default_attribute_settings ||= {:attributes_method => :attributes,
-          :on_set => lambda {|obj,attr| attr},
-          :on_get => lambda {|obj,attr| attr},
+          :on_set => lambda {|obj,attr,options| attr},
+          :on_get => lambda {|obj,attr,options| attr},
           :allow_blank => true,
           :initialize => true
         }
@@ -141,10 +164,11 @@ module SimpleModel
         add_defined_attribute(attr,options)
         options = default_attribute_settings.merge(options) if options[:on_get].blank?
         define_method(attr) do
-          if (options.key?(:default) && (!self.initialized?(attr) || (!options[:allow_blank] && self.attributes[attr].blank?)))
-            self.attributes[attr] = fetch_default_value(options[:default])
+          val = self.attributes[attr]
+          if (options.key?(:default) && (!self.initialized?(attr) || (!options[:allow_blank] && val.blank?)))
+            val = self.attributes[attr] = fetch_default_value(options[:default])
           end
-          options[:on_get].call(self,self.attributes[attr])
+          options[:on_get].call(self,val,options)
         end
         define_method("#{attr.to_s}?") do
           val = self.send(attr)
@@ -164,16 +188,14 @@ module SimpleModel
         add_defined_attribute(attr,options)
         options = default_attribute_settings.merge(options) if (options[:on_set].blank? || options[:after_set].blank?) 
         define_method("#{attr.to_s}=") do |val|
-          val = fetch_default_value(options[:default]) if (!options[:allow_blank] && options.key?(:default) && val.blank?)
-          begin   
-            val = options[:on_set].call(self,val)
-          rescue NoMethodError => e
-            raise ArgumentError, "#{val} could not be set for #{attr}: #{e.message}"
+          if allow_attribute_action?(self,val,options)
+            val = fetch_default_value(options[:default]) if (!options[:allow_blank] && options.key?(:default) && val.blank?)   
+            val = options[:on_set].call(self,val,options) unless (val.blank? && !options[:allow_blank] )
+            will_change = "#{attr}_will_change!".to_sym
+            self.send(will_change) if (initialized?(attr) && val != self.attributes[attr])       
+            self.attributes[attr] = val
+            options[:after_set].call(self,val,options) if options[:after_set] 
           end
-          will_change = "#{attr}_will_change!".to_sym
-          self.send(will_change) if (initialized?(attr) && val != self.attributes[attr])       
-          self.attributes[attr] = val
-          options[:after_set].call(self,val) if options[:after_set] 
         end
       end
     
@@ -181,17 +203,17 @@ module SimpleModel
         :has_attribute => {:alias => :has_attributes},
         :has_boolean  => {:cast_to => :to_b, :alias => :has_booleans},
         :has_currency => {:cast_to => :to_d, :alias => :has_currencies},
-        :has_date => {:cast_to => :to_date, :alias => :has_dates}, 
+        :has_date => {:cast_to => :to_date, :alias => :has_dates} , 
         :has_decimal  => {:cast_to => :to_d, :alias => :has_decimals},    
         :has_float => {:cast_to => :to_f, :alias => :has_floats}, 
         :has_int => {:cast_to => :to_i, :alias => :has_ints},
         :has_time => {:cast_to => :to_time, :alias => :has_times}  
       }
       
-      AVAILABLE_ATTRIBUTE_METHODS.each do |method,method_options|   
+      AVAILABLE_ATTRIBUTE_METHODS.each do |method,method_options|
         define_method(method) do |*attributes|
           options = default_attribute_settings.merge(attributes.extract_options!)
-          options[:on_set] = lambda {|obj,val| val.send(method_options[:cast_to]) } if method_options[:cast_to]
+          options[:on_set] = lambda {|obj,val,options| val.send(method_options[:cast_to]) } if method_options[:cast_to]
           create_attribute_methods(attributes,options)
         end
         module_eval("alias #{method_options[:alias]} #{method}")
@@ -240,8 +262,8 @@ module SimpleModel
       
       # Rails 3.0 Hack
       if (ActiveModel::VERSION::MAJOR == 3 && ActiveModel::VERSION::MINOR == 0)
-          base.attribute_method_suffix '_changed?', '_change', '_will_change!', '_was'
-          base.attribute_method_affix :prefix => 'reset_', :suffix => '!'
+        base.attribute_method_suffix '_changed?', '_change', '_will_change!', '_was'
+        base.attribute_method_affix :prefix => 'reset_', :suffix => '!'
       end
     end
   end
