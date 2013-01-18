@@ -85,6 +85,11 @@ module SimpleModel
       b = (b && !options[:unless].call(obj,val)) if options[:unless].is_a?(Proc)
       b
     end
+    
+    # Rails 3.2 + required when searching for attributes in from inherited classes/cmodles
+    def attribute(name)
+      attributes[name.to_sym]
+    end
        
     module ClassMethods  
       # Creates a new instance where the attributes store is set to object
@@ -265,20 +270,22 @@ module SimpleModel
         @after_initialize = after_initialize
       end
       
+      
+      
       # Must inherit super's defined_attributes and alias_attributes
       # Rails 3.0 does some weird stuff with ActiveModel::Dirty so we need a
       # hack to keep things working when a class in inherits from a super that 
       # has ActiveModel::Dirty included
       def inherited(base)
         # Rails 3.0 Hack
-        if (ActiveModel::VERSION::MAJOR == 3 && ActiveModel::VERSION::MINOR == 0)
-          base.send(:include, ActiveModel::Dirty)
+        if (ActiveModel::VERSION::MAJOR == 3 && ActiveModel::VERSION::MINOR == 0)    
           base.attribute_method_suffix '_changed?', '_change', '_will_change!', '_was'
           base.attribute_method_affix :prefix => 'reset_', :suffix => '!'
         end
-        
+        base.send(:include, ActiveModel::Dirty)
         base.defined_attributes = self.defined_attributes.merge(base.defined_attributes)
         base.alias_attributes = self.alias_attributes.merge(base.alias_attributes ) 
+        super
       end
     end
     

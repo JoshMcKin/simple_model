@@ -204,15 +204,18 @@ describe SimpleModel do
     before(:each) do
       class TestStuff < SimpleModel::Base
         has_attribute :bar
+        validates_presence_of :bar
       end
       
-      class OtherStuff < SimpleModel::Base
-        has_attribute :bar
-      end
-    
       class NewTestStuff < TestStuff
         has_boolean :foo
       end
+      
+      class OtherStuff < NewTestStuff
+        has_attribute :other
+        validates_numericality_of :other
+      end
+           
     end
     it "should merge defined attributes when class are inhereted" do
       NewTestStuff.defined_attributes[:bar].blank?.should be_false
@@ -225,8 +228,16 @@ describe SimpleModel do
       NewTestStuff.new.respond_to?(:bar_will_change!).should be_true
       NewTestStuff.new.respond_to?(:foo_will_change!).should be_true
     end
+    
+    it "should not throw exception method missing" do
+      o = OtherStuff.new
+      lambda { o.valid? }.should_not raise_error
+    end
+    
     after(:each) do
-      Object.send(:remove_const,:NewTestStuff)
+      [:OtherStuff,:NewTestStuff].each do |con|
+        Object.send(:remove_const,con)
+      end
     end
   end
   
