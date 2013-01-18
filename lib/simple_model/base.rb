@@ -154,7 +154,7 @@ require 'active_support/core_ext/object/blank'
       default_options.merge!(methods.extract_options!)
       actions = [action,"#{action}!".to_sym]
       actions.each do |a|
-        define_method(a) do |opts={}|
+        define_method(a) do |opts = {}|
           options = default_options.merge(opts)
           options[:raise_exception] = a.to_s.match(/\!$/)
           self.run_callbacks(action) do  
