@@ -9,7 +9,7 @@ describe SimpleModel::Attributes do
     @init = TestInit.new(:test1 => "1", :test2 => '2')
   end
 
-  it "should set provided attributes on initialize" do   
+  it "should set provided attributes on initialize" do
     @init.test1.should eql("1")
     @init.test2.should eql("2")
   end
@@ -19,7 +19,7 @@ describe SimpleModel::Attributes do
     @init.attributes[:test1].should eql("1")
     @init.attributes[:test2].should eql("2")
   end
-  
+
   context '#before_initialize' do
     before(:all) do
       class TestInit
@@ -29,20 +29,20 @@ describe SimpleModel::Attributes do
         has_attribute :far
       end
     end
-      
+
     it "should raise an exception if we try to set to something other than a Proc" do
       lambda {TestInit.before_initialize = "bad stuff"}.should raise_error
     end
-      
+
     it "should run the supplied lambda" do
       t = TestInit.new(:far => "")
       t.initialized?(:far).should be_false
       t = TestInit.new(:far => "t")
       t.initialized?(:far).should be_true
     end
-    
+
   end
-  
+
   context '#after_initialize' do
     before(:all) do
       class TestInit
@@ -52,18 +52,18 @@ describe SimpleModel::Attributes do
         has_attribute :car
       end
     end
-    
+
     it "should raise an exception if we try to set to something other than a Proc" do
       lambda {TestInit.after_initialize = "bad stuff"}.should raise_error
     end
-    
+
     it "should run the supplied lambda" do
       t = TestInit.new(:far => "")
       t.car.should eql("test")
     end
-    
+
   end
-  
+
   context '#new_with_store'do
     it "should use the provided object as the attribute store" do
       my_store = {:test1 => 1,:test2 => 2}
@@ -73,7 +73,7 @@ describe SimpleModel::Attributes do
       my_store[:test1].should eql(new.test1)
     end
   end
-  
+
   context "AVAILABLE_ATTRIBUTE_METHODS" do
     SimpleModel::Attributes::ClassMethods::AVAILABLE_ATTRIBUTE_METHODS.each do |m,options|
       it "should respond to #{m}" do
@@ -99,14 +99,14 @@ describe SimpleModel::Attributes do
         def default_value
           "bar"
         end
-        
+
         def default_hop
           "hop" if nap
         end
       end
-      
+
     end
-    
+
     before(:each) do
       @default = TestDefault.new
     end
@@ -114,11 +114,11 @@ describe SimpleModel::Attributes do
     it "should define setter method" do
       @default.respond_to?(:foo=).should be_true
     end
-  
+
     it "should define reader/getter method" do
       @default.respond_to?(:foo).should be_true
     end
-    
+
     context ':initialize => false' do
       it "should not initialize with the default value" do
         @default.attributes[:tip].should be_nil
@@ -131,30 +131,30 @@ describe SimpleModel::Attributes do
         end
       end
     end
-    
-    it "should call the method it describe by the default value if it exists" do 
+
+    it "should call the method it describe by the default value if it exists" do
       @default.attributes[:bar].should eql("bar")
     end
-    
-    it "should set the defaul to the supplied symbol, if the method does not exist" do 
+
+    it "should set the defaul to the supplied symbol, if the method does not exist" do
       @default.attributes[:fab].should eql(:some_symbol)
     end
-    
+
     it "should allow default value to be an empty array" do
       @default.my_array.should eql([])
     end
-    
+
     it "should create a boolean? method for each attribute" do
       @default.respond_to?(:foo?).should be_true
     end
-    
+
     it "should return !blank?" do
       @default.my_array.should eql([]) # blank array
       @default.my_array?.should be_false
       @default.my_array << 1
       @default.my_array?.should be_true
     end
-    
+
     it "should not allow blank if set" do
       @default.foo.should eql("foo")
       @default.foo = ""
@@ -162,14 +162,14 @@ describe SimpleModel::Attributes do
       @default.foo = "not blank"
       @default.foo.should eql("not blank")
     end
-    
+
     it "should try for the default if its blank on get" do
       @default.hop.blank?.should be_true
       @default.nap = "yep"
       @default.hop.should eql("hop")
-    end  
+    end
   end
-  
+
   context 'options with conditional' do
     before(:all) do
       class WithConditional
@@ -182,31 +182,31 @@ describe SimpleModel::Attributes do
       new = WithConditional.new(:my_date => nil)
       new.initialized?(:my_date).should be_false
     end
-    
+
     it "should call blank on val if :blank is supplied" do
       new = WithConditional.new(:my_other_date => nil)
       new.initialized?(:my_other_date).should be_false
     end
   end
-  
+
   context "on get" do
     it "should perform on_get when set" do
       class OnGet
         include SimpleModel::Attributes
         has_attribute :foo, :on_get => lambda{|obj,attr| (attr.blank? ? obj.send(:foo_default) : attr)}
-        
+
         def foo_default
           "test"
         end
       end
-      
+
       new = OnGet.new
       new.foo.should eql("test")
       new.foo = "foo"
       new.foo.should eql("foo")
     end
   end
-  
+
   context 'if supplied value can be cast' do
     before(:all) do
       class TestAlias
@@ -224,26 +224,39 @@ describe SimpleModel::Attributes do
         t.bar.should eql("foo")
         t.foo.should eql('foo')
       end
-    end   
+    end
   end
-  
+
   context "regression tests" do
-    it "should merge defined attributes when class are inhereted" do
+    before(:all) do
       class MyBase
         include SimpleModel::Attributes
         has_boolean :bar
+        has_dates :some, :thing, :default => :fetch_date, :allow_blank => false, :initialize => false
+
+        def fetch_date
+          Date.today
+        end
+
       end
-    
+
       class NewerBase < MyBase
         has_boolean :foo
       end
-    
+    end
+    it "should merge defined attributes when class are inhereted" do
       NewerBase.defined_attributes[:bar].blank?.should be_false
       n = NewerBase.new
       n.respond_to?(:bar_will_change!).should be_true
     end
+
+    it "should defaults that were not initialized should work from parent class" do
+      n = NewerBase.new
+      n.some.should eql(Date.today)
+      n.thing.should eql(Date.today)
+    end
   end
-  
+
   after(:all) do
     [:OnGet,:TestDefault,:TestInit,:MyBase,:NewerBase].each do |test_klass|
       Object.send(:remove_const,test_klass) if defined?(test_klass)
