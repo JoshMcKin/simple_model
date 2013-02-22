@@ -154,8 +154,8 @@ module SimpleModel
       # re-run to occur ONLY IN RAILS 3.0.
       def add_defined_attribute(attr,options)
         self.defined_attributes[attr] = options
-        @attribute_methods_generated = nil if (ActiveModel::VERSION::MAJOR == 3 && ActiveModel::VERSION::MINOR == 0)
-        define_attribute_methods self.defined_attributes.keys
+        @attribute_methods_generated = nil #if (ActiveModel::VERSION::MAJOR == 3 && ActiveModel::VERSION::MINOR == 0)
+        define_attribute_methods(self.defined_attributes.keys)
       end
       
       # builds the setter and getter methods
@@ -283,7 +283,11 @@ module SimpleModel
           base.attribute_method_affix :prefix => 'reset_', :suffix => '!'
         end
         base.send(:include, ActiveModel::Dirty)
-        base.defined_attributes = self.defined_attributes.merge(base.defined_attributes)
+
+        self.defined_attributes.each do |attr,options|
+          base.create_attribute_methods([attr],options)
+        end
+        
         base.alias_attributes = self.alias_attributes.merge(base.alias_attributes ) 
         super
       end
