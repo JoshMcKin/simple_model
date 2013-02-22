@@ -193,7 +193,7 @@ describe SimpleModel::Attributes do
     it "should perform on_get when set" do
       class OnGet
         include SimpleModel::Attributes
-        has_attribute :foo, :on_get => lambda{|obj,attr,options| (attr.blank? ? obj.send(:foo_default) : attr)}
+        has_attribute :foo, :on_get => lambda{|obj,attr| (attr.blank? ? obj.send(:foo_default) : attr)}
         
         def foo_default
           "test"

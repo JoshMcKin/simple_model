@@ -138,8 +138,8 @@ module SimpleModel
       # * :allow_blank - when set to false, if an attributes value is blank attempts to set the default value, defaults to true
       def default_attribute_settings
         @default_attribute_settings ||= {:attributes_method => :attributes,
-          :on_set => lambda {|obj,attr,options| attr},
-          :on_get => lambda {|obj,attr,options| attr},
+          :on_set => lambda {|obj,attr| attr},
+          :on_get => lambda {|obj,attr| attr},
           :allow_blank => true,
           :initialize => true
         }
@@ -176,7 +176,7 @@ module SimpleModel
           if (options.key?(:default) && (!self.initialized?(attr) || (!options[:allow_blank] && val.blank?)))
             val = self.attributes[attr] = fetch_default_value(options[:default])
           end
-          options[:on_get].call(self,val,options)
+          options[:on_get].call(self,val)
         end
         define_method("#{attr.to_s}?") do
           val = self.send(attr)
@@ -198,11 +198,11 @@ module SimpleModel
         define_method("#{attr.to_s}=") do |val|
           if allow_attribute_action?(self,val,options)
             val = fetch_default_value(options[:default]) if (!options[:allow_blank] && options.key?(:default) && val.blank?)   
-            val = options[:on_set].call(self,val,options) unless (val.blank? && !options[:allow_blank] )
+            val = options[:on_set].call(self,val) unless (val.blank? && !options[:allow_blank] )
             will_change = "#{attr}_will_change!".to_sym
             self.send(will_change) if (initialized?(attr) && val != self.attributes[attr])       
             self.attributes[attr] = val
-            options[:after_set].call(self,val,options) if options[:after_set] 
+            options[:after_set].call(self,val) if options[:after_set] 
           end
         end
       end
@@ -221,7 +221,7 @@ module SimpleModel
       AVAILABLE_ATTRIBUTE_METHODS.each do |method,method_options|
         define_method(method) do |*attributes|
           options = default_attribute_settings.merge(attributes.extract_options!)
-          options[:on_set] = lambda {|obj,val,options| val.send(method_options[:cast_to]) } if method_options[:cast_to]
+          options[:on_set] = lambda {|obj,val| val.send(method_options[:cast_to]) } if method_options[:cast_to]
           create_attribute_methods(attributes,options)
         end
         module_eval("alias #{method_options[:alias]} #{method}")
