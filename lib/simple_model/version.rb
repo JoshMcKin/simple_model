@@ -1,3 +1,3 @@
 module SimpleModel
-  VERSION = "1.2.6b"
+  VERSION = "1.2.6"
 end
