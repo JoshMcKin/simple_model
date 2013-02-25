@@ -232,16 +232,17 @@ describe SimpleModel::Attributes do
       class MyBase
         include SimpleModel::Attributes
         has_boolean :bar
+        has_attribute :str
         has_dates :some, :thing, :default => :fetch_date, :allow_blank => false, :initialize => false
 
         def fetch_date
           Date.today
         end
-
       end
 
       class NewerBase < MyBase
         has_boolean :foo
+        has_int :str
       end
     end
     it "should merge defined attributes when class are inhereted" do
@@ -254,6 +255,12 @@ describe SimpleModel::Attributes do
       n = NewerBase.new
       n.some.should eql(Date.today)
       n.thing.should eql(Date.today)
+    end
+
+    it "should allow redefining methods in child classes" do
+      n = NewerBase.new
+      n.str = '1'
+      n.str.should eql(1)
     end
   end
 
