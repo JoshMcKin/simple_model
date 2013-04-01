@@ -246,7 +246,7 @@ describe SimpleModel::Attributes do
       end
     end
     it "should merge defined attributes when class are inhereted" do
-      NewerBase.defined_attributes[:bar].should_not be_nil
+      NewerBase.attribute_defined?(:bar).should be_true
       n = NewerBase.new
       n.respond_to?(:bar_will_change!).should be_true
     end
@@ -254,6 +254,8 @@ describe SimpleModel::Attributes do
     it "should defaults that were not initialized should work from parent class" do
       n = NewerBase.new
       n.some.should eql(Date.today)
+      n.some = "2012-12-01"
+      n.some.should be_a(Date)
       n.thing.should eql(Date.today)
     end
 
