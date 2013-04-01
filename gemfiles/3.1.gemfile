@@ -5,4 +5,4 @@ gem 'activemodel','~> 3.1.1'
 gem 'debugger', :platform => 'ruby'
 gem 'ruby-debug', :platform => 'jruby'
 
-gemspec :path=>"../"
+gemspec :path => "../"

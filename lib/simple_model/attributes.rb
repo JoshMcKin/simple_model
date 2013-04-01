@@ -284,10 +284,8 @@ module SimpleModel
         end
         base.send(:include, ActiveModel::Dirty)
 
-        unless (ActiveModel::VERSION::MAJOR == 3 && ActiveModel::VERSION::MINOR == 0)
-          self.defined_attributes.each do |attr,options|
-            base.create_attribute_methods([attr],options)
-          end
+        self.defined_attributes.each do |attr,options|
+          base.create_attribute_methods([attr],options)
         end
         
         base.alias_attributes = self.alias_attributes.merge(base.alias_attributes ) 
