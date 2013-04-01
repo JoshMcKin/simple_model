@@ -218,8 +218,8 @@ describe SimpleModel do
            
     end
     it "should merge defined attributes when class are inhereted" do
-      NewTestStuff.defined_attributes[:bar].blank?.should be_false
-      NewTestStuff.defined_attributes[:foo].blank?.should be_false
+      NewTestStuff.attribute_defined?(:bar).blank?.should be_false
+      NewTestStuff.attribute_defined?(:foo).blank?.should be_false
     end
     it "should merge defined attributes when class are inhereted" do
       TestStuff.new.respond_to?(:bar_will_change!).should be_true

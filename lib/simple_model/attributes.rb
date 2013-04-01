@@ -113,7 +113,7 @@ module SimpleModel
       end
 
       def alias_attributes
-        @alias_attributes ||= {}.with_indifferent_access
+        @alias_attributes ||= HashWithIndifferentAccess.new
       end
 
       def alias_attributes=alias_attributes
@@ -121,11 +121,15 @@ module SimpleModel
       end
 
       def defined_attributes
-        @defined_attributes ||= {}.with_indifferent_access
+        @defined_attributes ||= HashWithIndifferentAccess.new
       end
 
       def defined_attributes=defined_attributes
         @defined_attributes = defined_attributes
+      end
+
+      def attribute_defined?(attr)
+        (self.defined_attributes[attr] || self.superclass.respond_to?(:attribute_defined?) && self.superclass.attribute_defined?(attr))
       end
 
       # The default settings for a SimpeModel class
@@ -282,11 +286,6 @@ module SimpleModel
         if (ActiveModel::VERSION::MAJOR == 3 && ActiveModel::VERSION::MINOR == 0)
           base.attribute_method_suffix '_changed?', '_change', '_will_change!', '_was'
           base.attribute_method_affix :prefix => 'reset_', :suffix => '!'
-        end
-        base.defined_attributes = self.defined_attributes.merge(base.defined_attributes)
-        base.alias_attributes = self.alias_attributes.merge(base.alias_attributes)
-        base.defined_attributes.each do |attr,options|
-          base.create_attribute_methods([attr],options) #unless base.instance_methods.include?(attr.to_sym)
         end
       end
     end
