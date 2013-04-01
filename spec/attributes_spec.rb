@@ -246,7 +246,7 @@ describe SimpleModel::Attributes do
       end
     end
     it "should merge defined attributes when class are inhereted" do
-      NewerBase.defined_attributes[:bar].blank?.should be_false
+      NewerBase.defined_attributes[:bar].should_not be_nil
       n = NewerBase.new
       n.respond_to?(:bar_will_change!).should be_true
     end
