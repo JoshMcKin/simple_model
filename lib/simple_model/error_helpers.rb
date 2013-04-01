@@ -64,6 +64,7 @@ module SimpleModel
     end
 
     def puralize_errors_string(array)
+      array = array.to_a if array.is_a?(ActiveModel::Errors)
       s = "error"
       s << "s" if array.length > 1
       s
