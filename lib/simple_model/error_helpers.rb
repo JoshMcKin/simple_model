@@ -36,6 +36,7 @@ module SimpleModel
     def create_error_list(key,value)
       error_items = ""
       if value.is_a?(Array)
+        value.uniq!
         if value.length == 1
           self.errors_count = (self.errors_count.to_i + 1)
           error_items << "<li>#{key.to_s.titleize} #{value[0]}<li>" 
