@@ -59,7 +59,7 @@ describe SimpleModel::ExtendCore, 'String.rb' do
   end
 
   context '#to_date' do 
-    it "should handel US formatted date strings" do
+    it "should handle US formatted date strings" do
       lambda {"12/31/2010".to_date}.should_not raise_error
       "12/31/2010".to_date.class.should eql(Date)
       "12/31/2010".to_date.should eql(Date.parse("2010-12-31"))
@@ -72,7 +72,7 @@ describe SimpleModel::ExtendCore, 'String.rb' do
   end
   
   context '#to_time' do
-    it "should handel US formatted date strings" do
+    it "should handle US formatted date strings" do
       lambda {"12/31/2010 12:00:00".to_time}.should_not raise_error
       "12/31/2010 12:00:00".to_time.should be_kind_of(Time)
       "12/31/2010 12:00:00".to_time.should eql(Time.parse("2010-12-31 12:00:00"))
@@ -84,7 +84,7 @@ describe SimpleModel::ExtendCore, 'String.rb' do
   end
   
   context '#to_f' do
-    it "return a Foat from a string that may contain non-numeric values" do
+    it "return a Float from a string that may contain non-numeric values" do
       "$5,000.006".to_f.should eql(5000.006)
     end
   end

@@ -71,7 +71,6 @@ module SimpleModel
       s
     end
 
-  
     def errors_to_s
       error_string = ""
       self.errors.full_messages.each do |m|

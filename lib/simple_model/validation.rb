@@ -11,7 +11,6 @@ module SimpleModel
       end
     end
 
-
     def validates_format_of(*attr_names)
       options = attr_names.extract_options!
       #set defaults
