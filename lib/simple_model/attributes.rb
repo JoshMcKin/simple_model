@@ -279,7 +279,7 @@ module SimpleModel
       # hack to keep things working when a class inherits from a super that
       # has ActiveModel::Dirty included
       def inherited(base)
-        base.alias_attributes = base.alias_attributes.merge(self.alias_attributes)
+        base.alias_attributes = self.alias_attributes.merge(base.alias_attributes)
         super
         # Rails 3.0 Hack
         if (ActiveModel::VERSION::MAJOR == 3 && ActiveModel::VERSION::MINOR == 0)
