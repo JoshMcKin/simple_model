@@ -274,13 +274,12 @@ module SimpleModel
         @after_initialize = after_initialize
       end
 
-
-
       # Must inherit super's defined_attributes and alias_attributes
       # Rails 3.0 does some weird stuff with ActiveModel::Dirty so we need a
       # hack to keep things working when a class inherits from a super that
       # has ActiveModel::Dirty included
       def inherited(base)
+        base.alias_attributes = base.alias_attributes.merge(self.alias_attributes)
         super
         # Rails 3.0 Hack
         if (ActiveModel::VERSION::MAJOR == 3 && ActiveModel::VERSION::MINOR == 0)
