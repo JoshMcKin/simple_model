@@ -10,7 +10,7 @@ SimpleModel implements:
 * ActiveModel::Dirty
 * ActiveModel::Naming
 * ActiveModel::Callbacks
-* ActiveSupport core extentions (see [SimpleModel::Base](https://github.com/JoshMcKin/simple_model/blob/master/lib/simple_model/base.rb))
+* ActiveSupport core extensions (see [SimpleModel::Base](https://github.com/JoshMcKin/simple_model/blob/master/lib/simple_model/base.rb))
 
 Additionally SimpleModel implements basic model actions
 
