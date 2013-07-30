@@ -46,5 +46,4 @@ module SimpleModel
   require "simple_model/validation"
   require "simple_model/base"
   require 'simple_model/simple_model_railtie.rb' if defined?(Rails)
-  
 end

@@ -125,7 +125,7 @@ describe SimpleModel do
     
   end
   
-  it 'Should include peform validation callbacks' do
+  it 'Should perform validation callbacks' do
     class TestStuff < SimpleModel::Base
       before_validation :set_foo   
       after_validation :set_bar
@@ -217,11 +217,11 @@ describe SimpleModel do
       end
            
     end
-    it "should merge defined attributes when class are inhereted" do
+    it "should merge defined attributes when class are inherited" do
       NewTestStuff.attribute_defined?(:bar).blank?.should be_false
       NewTestStuff.attribute_defined?(:foo).blank?.should be_false
     end
-    it "should merge defined attributes when class are inhereted" do
+    it "should merge defined attributes when class are inherited" do
       TestStuff.new.respond_to?(:bar_will_change!).should be_true
       t = OtherStuff.new
       t.bar = [1,2,4]

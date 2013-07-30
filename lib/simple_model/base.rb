@@ -18,9 +18,9 @@ require 'active_support/core_ext/object/blank'
 
   # == SimpleModel::Base
   #
-  # Provides an interface for any class to build tableless models.
+  # Provides an interface for any class to build table-less models.
   # 
-  # Implements Validations, Callbacks and Dirty from ActiveModel, and datatype specific
+  # Implements Validations, Callbacks and Dirty from ActiveModel, and data-type specific
   # attribute definitions with default options. SimpleModel::Base is intended as
   # an example, while it may be used in production, which it is on many of my apps
   # today, it is recommend you use SimpleModel::Base as an example to implement your
@@ -39,7 +39,7 @@ require 'active_support/core_ext/object/blank'
   #   # save
   #   # update
   #   # create
-  #   # destory
+  #   # destroy
   # 
   # ==== Example
   # 

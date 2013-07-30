@@ -24,7 +24,7 @@ describe SimpleModel::Attributes do
     before(:all) do
       class TestInit
         include SimpleModel::Attributes
-        # Do not initalize blank attributes
+        # Do not initialize blank attributes
         self.before_initialize = lambda {|obj,attrs| attrs.select{|k,v| !v.blank?}}
         has_attribute :far
       end
@@ -47,7 +47,7 @@ describe SimpleModel::Attributes do
     before(:all) do
       class TestInit
         include SimpleModel::Attributes
-        # Do not initalize blank attributes
+        # Do not initialize blank attributes
         self.after_initialize = lambda { |obj| obj.car = "test" if obj.car.blank?}
         has_attribute :car
       end
@@ -136,7 +136,7 @@ describe SimpleModel::Attributes do
       @default.attributes[:bar].should eql("bar")
     end
 
-    it "should set the defaul to the supplied symbol, if the method does not exist" do
+    it "should set the default to the supplied symbol, if the method does not exist" do
       @default.attributes[:fab].should eql(:some_symbol)
     end
 

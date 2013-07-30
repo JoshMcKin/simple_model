@@ -46,7 +46,7 @@ module SimpleModel
       arg
     end
 
-    # Returns attribute that have defaults in a hash: {:attrbute => "default value"}
+    # Returns attribute that have defaults in a hash: {:attribute => "default value"}
     # Checks for alias attributes to ensure they are not overwritten
     def attributes_with_for_init(attrs)
       d = attrs.with_indifferent_access
@@ -86,7 +86,7 @@ module SimpleModel
       b
     end
 
-    # Rails 3.2 + required when searching for attributes in from inherited classes/cmodles
+    # Rails 3.2 + required when searching for attributes in from inherited classes/models
     def attribute(name)
       attributes[name.to_sym]
     end
@@ -94,7 +94,7 @@ module SimpleModel
     module ClassMethods
       # Creates a new instance where the attributes store is set to object
       # provided, which allows one to pass a session store hash or any other
-      # hash-like object to be used for persistance. Typically used for modeling
+      # hash-like object to be used for persistence. Typically used for modeling
       # session stores for authorization or shopping carts
       # EX:
       #     class ApplicationController < ActionController::Base
@@ -138,7 +138,7 @@ module SimpleModel
       # * :on_get - accepts a lambda that is run when you get/read an attribute
       # * :default - the default value for the attribute, can be a symbol that is sent for a method
       # * :initialize - informations the object whether or not it should initialize the attribute with :default value, defaults to true
-      # ** If :intialize is set to false you must set :allow_blank to false or it will never set the default value
+      # ** If :initialize is set to false you must set :allow_blank to false or it will never set the default value
       # * :allow_blank - when set to false, if an attributes value is blank attempts to set the default value, defaults to true
       def default_attribute_settings
         @default_attribute_settings ||= {:attributes_method => :attributes,
@@ -262,13 +262,13 @@ module SimpleModel
 
       # A hook to perform actions after all attributes have been initialized
       # Expects an lambda that accept the object and the pending attributes hash
-      # EX: lambda{|obj| puts "initialized"}
+      # EX: lambda {|obj| puts "initialized"}
       def after_initialize
         @after_initialize
       end
 
       # Expects an lambda that accept the object and the pending attributes hash
-      # EX: lambda{|obj| puts "initialized"}
+      # EX: lambda {|obj| puts "initialized"}
       def after_initialize=after_initialize
         raise TypeError "after_initalize must be a Proc" unless after_initialize.is_a?(Proc)
         @after_initialize = after_initialize
