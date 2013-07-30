@@ -234,7 +234,7 @@ describe SimpleModel::Attributes do
         has_boolean :bar
         has_attribute :str
         has_dates :some, :thing, :default => :fetch_date, :allow_blank => false, :initialize => false
-
+        alias_attribute :other, :bar
         def fetch_date
           Date.today
         end
@@ -245,7 +245,7 @@ describe SimpleModel::Attributes do
         has_int :str
       end
     end
-    it "should merge defined attributes when class are inhereted" do
+    it "should merge defined attributes when class are inherited" do
       NewerBase.attribute_defined?(:bar).should be_true
       n = NewerBase.new
       n.respond_to?(:bar_will_change!).should be_true
@@ -263,6 +263,11 @@ describe SimpleModel::Attributes do
       n = NewerBase.new
       n.str = '1'
       n.str.should eql(1)
+    end
+
+    it "should set attribute from alias" do
+      MyBase.new(:other => true).bar?.should be_true
+      NewerBase.new(:other => true).bar?.should be_true
     end
   end
 
