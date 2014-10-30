@@ -36,9 +36,9 @@ describe SimpleModel::Attributes do
 
     it "should run the supplied lambda" do
       t = TestInit.new(:far => "")
-      t.initialized?(:far).should be_false
+      t.initialized?(:far).should eql(false)
       t = TestInit.new(:far => "t")
-      t.initialized?(:far).should be_true
+      t.initialized?(:far).should eql(true)
     end
 
   end
@@ -77,10 +77,10 @@ describe SimpleModel::Attributes do
   context "AVAILABLE_ATTRIBUTE_METHODS" do
     SimpleModel::Attributes::ClassMethods::AVAILABLE_ATTRIBUTE_METHODS.each do |m,options|
       it "should respond to #{m}" do
-        TestInit.respond_to?(m).should be_true
+        TestInit.respond_to?(m).should eql(true)
       end
       it "should respond to alias #{options[:alias]}" do
-        TestInit.respond_to?(options[:alias]).should be_true
+        TestInit.respond_to?(options[:alias]).should eql(true)
       end
     end
   end
@@ -112,11 +112,11 @@ describe SimpleModel::Attributes do
     end
 
     it "should define setter method" do
-      @default.respond_to?(:foo=).should be_true
+      @default.respond_to?(:foo=).should eql(true)
     end
 
     it "should define reader/getter method" do
-      @default.respond_to?(:foo).should be_true
+      @default.respond_to?(:foo).should eql(true)
     end
 
     context ':initialize => false' do
@@ -145,14 +145,14 @@ describe SimpleModel::Attributes do
     end
 
     it "should create a boolean? method for each attribute" do
-      @default.respond_to?(:foo?).should be_true
+      @default.respond_to?(:foo?).should eql(true)
     end
 
     it "should return !blank?" do
       @default.my_array.should eql([]) # blank array
-      @default.my_array?.should be_false
+      @default.my_array?.should eql(false)
       @default.my_array << 1
-      @default.my_array?.should be_true
+      @default.my_array?.should eql(true)
     end
 
     it "should not allow blank if set" do
@@ -164,7 +164,7 @@ describe SimpleModel::Attributes do
     end
 
     it "should try for the default if its blank on get" do
-      @default.hop.blank?.should be_true
+      @default.hop.blank?.should eql(true)
       @default.nap = "yep"
       @default.hop.should eql("hop")
     end
@@ -180,12 +180,12 @@ describe SimpleModel::Attributes do
     end
     it "should not raise error" do
       new = WithConditional.new(:my_date => nil)
-      new.initialized?(:my_date).should be_false
+      new.initialized?(:my_date).should eql(false)
     end
 
     it "should call blank on val if :blank is supplied" do
       new = WithConditional.new(:my_other_date => nil)
-      new.initialized?(:my_other_date).should be_false
+      new.initialized?(:my_other_date).should eql(false)
     end
   end
 
@@ -246,9 +246,9 @@ describe SimpleModel::Attributes do
       end
     end
     it "should merge defined attributes when class are inherited" do
-      NewerBase.attribute_defined?(:bar).should be_true
+      NewerBase.attribute_defined?(:bar).should eql(true)
       n = NewerBase.new
-      n.respond_to?(:bar_will_change!).should be_true
+      n.respond_to?(:bar_will_change!).should eql(true)
     end
 
     it "should defaults that were not initialized should work from parent class" do
@@ -266,8 +266,8 @@ describe SimpleModel::Attributes do
     end
 
     it "should set attribute from alias" do
-      MyBase.new(:other => true).bar?.should be_true
-      NewerBase.new(:other => true).bar?.should be_true
+      MyBase.new(:other => true).bar?.should eql(true)
+      NewerBase.new(:other => true).bar?.should eql(true)
     end
   end
 

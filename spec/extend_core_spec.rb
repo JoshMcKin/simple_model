@@ -18,7 +18,7 @@ describe SimpleModel::ExtendCore, 'Float.rb' do
       0.333.to_currency_s.class.should eql(String)
     end
     it "should prefix string with currency symbol" do
-      5.12.to_currency_s.include?("$").should be_true
+      5.12.to_currency_s.include?("$").should eql(true)
     end
     it "should padd with zeros for cents" do
       5.0.to_currency_s.should eql("$5.00")
@@ -53,7 +53,7 @@ describe SimpleModel::ExtendCore, 'String.rb' do
     end
     it "should return true if string is '1' or 't' or 'true'"do
       ['1','t','true'].each do |s|
-        s.to_b.should be_true
+        s.to_b.should eql(true)
       end
     end  
   end
