@@ -129,7 +129,7 @@ module SimpleModel
       end
 
       def attribute_defined?(attr)
-        (self.defined_attributes[attr] || self.superclass.respond_to?(:attribute_defined?) && self.superclass.attribute_defined?(attr))
+        (self.defined_attributes.member?(attr) || self.superclass.respond_to?(:attribute_defined?) && self.superclass.attribute_defined?(attr))
       end
 
       # The default settings for a SimpeModel class
@@ -183,6 +183,7 @@ module SimpleModel
           options[:on_get].call(self,val)
         end
         define_method("#{attr.to_s}?") do
+          return false unless initialized?(attr)
           val = self.send(attr)
           if val.respond_to?(:to_b)
             val = val.to_b

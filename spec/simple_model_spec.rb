@@ -33,7 +33,7 @@ describe SimpleModel do
         end
       
         t = TestStuff.new
-        t.save.should be_false
+        t.save.should eql(false)
       end
     end
   
@@ -49,7 +49,7 @@ describe SimpleModel do
         end
       
         t = TestStuff.new
-        t.destroy.should be_true
+        t.destroy.should eql(true)
       end
     end
     context "action methods that end with '!'" do
@@ -93,18 +93,18 @@ describe SimpleModel do
     class TestStuff < SimpleModel::Base
       has_booleans :test_boolean
     end
-    TestStuff.new.methods.include?(:test_boolean).should be_true
-    #a.test.should be_false
+    TestStuff.new.methods.include?(:test_boolean).should eql(true)
+    #a.test.should eql(false)
   end
   it 'Should add a boolean setter' do
     class TestStuff < SimpleModel::Base
       has_booleans :test_boolean
     end
     t =  TestStuff.new
-    t.methods.include?(:test_boolean).should be_true
+    t.methods.include?(:test_boolean).should eql(true)
     t.test_boolean = true
-    t.test_boolean.should be_true
-    #a.test.should be_false
+    t.test_boolean.should eql(true)
+    #a.test.should eql(false)
   end
   it 'Should add a error setter' do
 
@@ -114,14 +114,14 @@ describe SimpleModel do
     a = TestStuff.new
 
     a.errors.add(:test_attr, "test")
-    a.errors?.should be_true
+    a.errors?.should eql(true)
   end
   
   it 'Should include validation callbacks' do
     class TestStuff < SimpleModel::Base
     end
-    TestStuff.respond_to?(:before_validation).should be_true
-    TestStuff.respond_to?(:after_save).should be_true
+    TestStuff.respond_to?(:before_validation).should eql(true)
+    TestStuff.respond_to?(:after_save).should eql(true)
     
   end
   
@@ -191,13 +191,13 @@ describe SimpleModel do
     
     t = TestStuff.new
     t.foo = "bar"
-    t.foo_changed?.should be_true
-    t.respond_to?(:foo_will_change!).should be_true
-    t.respond_to?(:boo_will_change!).should be_true
+    t.foo_changed?.should eql(true)
+    t.respond_to?(:foo_will_change!).should eql(true)
+    t.respond_to?(:boo_will_change!).should eql(true)
     t.foo_change.should eql(["def","bar"])
-    t.changed?.should be_true
+    t.changed?.should eql(true)
     t.save
-    t.changed?.should be_false
+    t.changed?.should eql(false)
   end 
   
   context "regression tests" do
@@ -218,15 +218,15 @@ describe SimpleModel do
            
     end
     it "should merge defined attributes when class are inherited" do
-      NewTestStuff.attribute_defined?(:bar).blank?.should be_false
-      NewTestStuff.attribute_defined?(:foo).blank?.should be_false
+      NewTestStuff.attribute_defined?(:bar).blank?.should eql(false)
+      NewTestStuff.attribute_defined?(:foo).blank?.should eql(false)
     end
     it "should merge defined attributes when class are inherited" do
-      TestStuff.new.respond_to?(:bar_will_change!).should be_true
+      TestStuff.new.respond_to?(:bar_will_change!).should eql(true)
       t = OtherStuff.new
       t.bar = [1,2,4]
-      NewTestStuff.new.respond_to?(:bar_will_change!).should be_true
-      NewTestStuff.new.respond_to?(:foo_will_change!).should be_true
+      NewTestStuff.new.respond_to?(:bar_will_change!).should eql(true)
+      NewTestStuff.new.respond_to?(:foo_will_change!).should eql(true)
     end
     
     it "should not throw exception method missing" do

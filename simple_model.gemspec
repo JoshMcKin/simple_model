@@ -16,6 +16,7 @@ Gem::Specification.new do |s|
   s.add_runtime_dependency 'activemodel','~> 3.0'
 
   s.add_development_dependency 'rspec'
+  s.add_development_dependency 'rspec-autotest'
   s.add_development_dependency 'autotest'
 
   s.rubyforge_project = "simple_model"
