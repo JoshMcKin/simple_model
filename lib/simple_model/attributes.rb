@@ -183,7 +183,7 @@ module SimpleModel
           options[:on_get].call(self,val)
         end
         define_method("#{attr.to_s}?") do
-          return false unless initialized?(attr)
+          # return false unless initialized?(attr) THIS BROKE STUFF
           val = self.send(attr)
           if val.respond_to?(:to_b)
             val = val.to_b
