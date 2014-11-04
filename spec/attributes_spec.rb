@@ -251,9 +251,9 @@ describe SimpleModel::Attributes do
       n.respond_to?(:bar_will_change!).should eql(true)
     end
 
-    it "should defaults that were not initialized should work from parent class" do
+    it "should set defaults that were not initialized should work from parent class" do
       n = NewerBase.new
-      n.some.should eql(Date.today)
+      n.some.should eql(n.send(:fetch_date))
       n.some = "2012-12-01"
       n.some.should be_a(Date)
       n.thing.should eql(Date.today)
