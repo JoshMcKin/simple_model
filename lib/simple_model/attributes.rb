@@ -119,7 +119,7 @@ module SimpleModel
       end
 
       def alias_attributes
-        @alias_attributes 
+        @alias_attributes ||= HashWithIndifferentAccess.new
       end
 
       def alias_attributes=alias_attributes
@@ -127,7 +127,7 @@ module SimpleModel
       end
 
       def defined_attributes
-        @defined_attributes
+        @defined_attributes ||= HashWithIndifferentAccess.new
       end
 
       def defined_attributes=defined_attributes
@@ -286,7 +286,6 @@ module SimpleModel
       # hack to keep things working when a class inherits from a super that
       # has ActiveModel::Dirty included
       def inherited(base)
-        base.defined_attributes = HashWithIndifferentAccess.new
         base.alias_attributes = self.alias_attributes.dup
         super
         # Rails 3.0 Hack
@@ -302,8 +301,6 @@ module SimpleModel
     # ActiveModel::Dirty included
     def self.included(base)
       base.extend(Attributes::ClassMethods)
-      base.alias_attributes   = HashWithIndifferentAccess.new
-      base.defined_attributes = HashWithIndifferentAccess.new
       base.send(:include, ActiveModel::Dirty)
       base.send(:include, ActiveModel::Validations)
       base.send(:include, ActiveModel::Conversion)

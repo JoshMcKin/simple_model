@@ -67,10 +67,10 @@ describe SimpleModel::Attributes do
   context '#new_with_store'do
     it "should use the provided object as the attribute store" do
       my_store = {:test1 => 1,:test2 => 2}
-      new = TestInit.new_with_store(my_store)
-      new.test1 = 3
-      new.test1.should eql(3)
-      my_store[:test1].should eql(new.test1)
+      nw = TestInit.new_with_store(my_store)
+      nw.test1 = 3
+      nw.test1.should eql(3)
+      my_store[:test1].should eql(nw.test1)
     end
   end
 
