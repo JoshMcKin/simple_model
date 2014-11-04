@@ -1,0 +1,6 @@
+source "http://rubygems.org"
+
+gem 'activesupport','~> 3.0.1'
+gem 'activemodel','~> 3.0.1'
+
+gemspec :path => "../"
