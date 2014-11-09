@@ -60,7 +60,8 @@ module SimpleModel
 
       # returns boolean value for common boolean string values
       def to_b
-        ['1',"true", "t"].include?(self.downcase)
+        return true if self =~ (/^(true|t|yes|y|1)$/i)
+        false
       end
 
       # Takes known US formatted date/time strings (MM/DD/YYYY TIME) and converts

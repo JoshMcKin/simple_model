@@ -254,9 +254,7 @@ describe SimpleModel::Attributes do
     it "should set defaults that were not initialized should work from parent class" do
       n = NewerBase.new
       n.some.should eql(n.send(:fetch_date))
-      n.some = "2012-12-01"
-      n.some.should be_a(Date)
-      n.thing.should eql(Date.today)
+      n.thing.should eql(n.send(:fetch_date))
     end
 
     it "should allow redefining methods in child classes" do
