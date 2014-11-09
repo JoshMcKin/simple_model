@@ -48,7 +48,6 @@ module SimpleModel
     def get_attribute(attr)
       val = self.attributes[attr]
       options = self.class.defined_attributes[attr] || {}
-      (options.key?(:default) && (!self.initialized?(attr) || (!options[:allow_blank] && val.blank?)))
       if (options.key?(:default) && (!self.initialized?(attr) || (!options[:allow_blank] && val.blank?)))
         val = self.attributes[attr] = fetch_default_value(options[:default])
       end
