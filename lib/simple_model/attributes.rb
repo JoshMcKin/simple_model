@@ -3,15 +3,18 @@ module SimpleModel
     include ExtendCore
     extend ActiveSupport::Concern
     include ActiveModel::AttributeMethods
-
     attr_accessor :attributes
+    
     def initialize(*attrs)
-      @attributes ||= HashWithIndifferentAccess.new
       attrs = attrs.extract_options!
       attrs = attributes_with_for_init(attrs)
       attrs = self.class.before_initialize.call(self,attrs) if self.class.before_initialize
       set(attrs)
       self.class.after_initialize.call(self) if self.class.after_initialize
+    end
+
+    def attributes
+      @attributes ||= HashWithIndifferentAccess.new
     end
 
     # Returns true if attribute has been initialized
