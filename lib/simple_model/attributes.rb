@@ -63,10 +63,10 @@ module SimpleModel
 
     def get_attribute?(attr)
       val = get_attribute(attr)
-      if val.respond_to?(:to_b)
-        val = val.to_b
-      else
-        val = !val.blank? if val.respond_to?(:blank?)
+      if val.respond_to?(:blank?)
+        return !val.blank?
+      elsif val.respond_to?(:to_b) 
+        return val.to_b
       end
       val
     end
