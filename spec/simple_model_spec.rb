@@ -42,7 +42,7 @@ describe SimpleModel do
         class TestStuff < SimpleModel::Base
           destroy :test
           attr_accessor :foo
-          validate :foo, :presence => true
+          validates :foo, :presence => true
           def test
             return true
           end
