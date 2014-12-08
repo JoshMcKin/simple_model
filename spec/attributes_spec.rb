@@ -232,9 +232,12 @@ describe SimpleModel::Attributes do
       class MyBase
         include SimpleModel::Attributes
         has_boolean :bar
-        has_attribute :str
+        has_attribute :str, :stuff
+        has_currency :amount, :default => BigDecimal("0.0"), :initialize => false
         has_dates :some, :thing, :default => :fetch_date, :allow_blank => false, :initialize => false
         alias_attribute :other, :bar
+        alias_attribute :other_amount, :amount
+
         def fetch_date
           Date.today
         end
@@ -244,6 +247,11 @@ describe SimpleModel::Attributes do
         has_boolean :foo
         has_int :str
       end
+
+      class NewestBase < NewerBase
+        alias_attribute :some_amount, :other_amount
+      end
+
     end
     it "should merge defined attributes when class are inherited" do
       NewerBase.attribute_defined?(:bar).should eql(true)
@@ -266,6 +274,12 @@ describe SimpleModel::Attributes do
     it "should set attribute from alias" do
       MyBase.new(:other => true).bar?.should eql(true)
       NewerBase.new(:other => true).bar?.should eql(true)
+    end
+
+    it "should properly alias attributes from parent class" do
+     nb =  NewestBase.new(:some_amount => 1.0)
+     nb.other_amount.should eql(1.0.to_d)
+     nb.amount.should eql(1.0.to_d)
     end
   end
 
