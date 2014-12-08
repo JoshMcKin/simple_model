@@ -221,7 +221,7 @@ module SimpleModel
       # We don't want to call define_attribute_methods on methods defined in the parent class
       def defined_attributes_keys
         dak = self.defined_attributes.keys
-        dak = dak - self.superclass.defined_attributes.keys if self.superclass.respond_to?(:defined_attributes)
+        dak = dak - self.superclass.defined_attributes_keys if self.superclass.respond_to?(:defined_attributes_keys)
         dak
       end
 
@@ -305,8 +305,8 @@ module SimpleModel
       # hack to keep things working when a class inherits from a super that
       # has ActiveModel::Dirty included
       def inherited(base)
-        base.defined_attributes = self.defined_attributes.dup
-        base.alias_attributes = self.alias_attributes.dup
+        base.defined_attributes = self.defined_attributes.merge(base.defined_attributes)
+        base.alias_attributes = self.alias_attributes.merge(base.alias_attributes)
         super
         # Rails 3.0 Hack
         if (ActiveModel::VERSION::MAJOR == 3 && ActiveModel::VERSION::MINOR == 0)
