@@ -38,7 +38,7 @@ module SimpleModel
 
     def set_attribute(attr,val)
       options = self.class.defined_attributes[attr] || {}
-      if allow_attribute_action?(self,val,options)
+      if allow_attribute_action?(val,options)
         val = fetch_default_value(options[:default]) if (!options[:allow_blank] && options.key?(:default) && val.blank?)
         val = options[:on_set].call(self,val) unless (!options.key?(:on_set) || (val.blank? && !options[:allow_blank]) )
         will_change = "#{attr}_will_change!".to_sym
@@ -105,7 +105,7 @@ module SimpleModel
       !(self.class.alias_attributes.select{ |a, m| (m == attr && attrs.key?(a.to_sym)) }).empty?
     end
 
-    def allow_attribute_action?(obj,val,options)
+    def allow_attribute_action?(val,options)
       return true if (options[:if].blank? && options[:unless].blank?)
       b = true
       if options[:if].is_a?(Symbol)
@@ -115,7 +115,7 @@ module SimpleModel
           b = (b && send(options[:if]))
         end
       end
-      b = (b && options[:if].call(obj,val)) if options[:if].is_a?(Proc)
+      b = (b && options[:if].call(self,val)) if options[:if].is_a?(Proc)
       if options[:unless].is_a?(Symbol)
         if options[:unless] == :blank
           b = (b && !val.blank?)
@@ -123,7 +123,7 @@ module SimpleModel
           b = (b && !send(options[:unless]))
         end
       end
-      b = (b && !options[:unless].call(obj,val)) if options[:unless].is_a?(Proc)
+      b = (b && !options[:unless].call(self,val)) if options[:unless].is_a?(Proc)
       b
     end
 
@@ -226,7 +226,7 @@ module SimpleModel
       # We don't want to call define_attribute_methods on methods defined in the parent class
       def defined_attributes_keys
         dak = self.defined_attributes.keys
-        dak = dak - self.superclass.defined_attributes_keys if self.superclass.respond_to?(:defined_attributes_keys)
+        dak = dak - self.superclass.defined_attributes.keys if self.superclass.respond_to?(:defined_attributes)
         dak
       end
 
