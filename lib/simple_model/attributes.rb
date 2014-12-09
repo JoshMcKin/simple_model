@@ -87,8 +87,9 @@ module SimpleModel
     def attributes_with_for_init(attrs)
       d = attrs.with_indifferent_access
       self.class.defined_attributes.each do |k,v|
-        if allow_set_default?(d,k,v)
-          d[k] = fetch_default_value(v[:default])
+        key = k.to_sym
+        if allow_init_default?(d,key,v)
+          d[key] = fetch_default_value(v[:default])
         end
       end
       d
@@ -96,8 +97,12 @@ module SimpleModel
 
     # Only set default if there is a default value, initializing is allow and
     # new attributes do not have a value to set and
-    def allow_set_default?(d,k,v)
-      (v[:default] && (v[:initialize] != false) && (!d.key?(k) && !d.key?(self.class.alias_attributes[k])))
+    def allow_init_default?(d,k,v)
+      (v[:default] && (v[:initialize] != false) && (!d.key?(k) && !attributes_have_alias?(d,k)))
+    end
+
+    def attributes_have_alias?(attrs,attr)
+      !(self.class.alias_attributes.select{ |a, m| (m == attr && attrs.key?(a.to_sym)) }).empty?
     end
 
     def allow_attribute_action?(obj,val,options)
@@ -256,16 +261,25 @@ module SimpleModel
 
       # Creates alias setter and getter for the supplied attribute using the supplied alias
       # See spec for example.
-      def alias_attribute(new_alias,attribute)
-        alias_attributes[attribute] = new_alias
+      def alias_attribute(new_alias,attr)
+        
+        # get to the base attribute
+        while alias_attributes[attr]
+          attr = alias_attributes[attr]
+        end
+
+        raise UndefinedAttribute, "#{attr} is not a defined attribute so it cannot be aliased" unless defined_attributes[attr]
+
+        alias_attributes[new_alias] = attr
+
         define_method(new_alias) do
-          self.send(attribute)
+          self.send(attr)
         end
         define_method("#{new_alias}?") do
-          self.send("#{attribute}?")
+          self.send("#{attr}?")
         end
         define_method("#{new_alias.to_s}=") do |*args, &block|
-          self.send("#{attribute.to_s}=",*args, &block)
+          self.send("#{attr.to_s}=",*args, &block)
         end
       end
 
