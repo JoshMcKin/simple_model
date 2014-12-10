@@ -40,9 +40,8 @@ module SimpleModel
       options = self.class.defined_attributes[attr] || {}
       if allow_attribute_action?(val,options)
         val = fetch_default_value(options[:default]) if (!options[:allow_blank] && options.key?(:default) && val.blank?)
-        val = options[:on_set].call(self,val) unless (!options.key?(:on_set) || (val.blank? && !options[:allow_blank]) )
-        will_change = "#{attr}_will_change!".to_sym
-        self.send(will_change) if (initialized?(attr) && val != self.attributes[attr])
+        val = options[:on_set].call(self,val) if options[:on_set] #(!options.key?(:on_set) || (val.blank? && !options[:allow_blank]) )
+        self.send("#{attr}_will_change!") if (initialized?(attr) && val != self.attributes[attr])
         self.attributes[attr] = val
         options[:after_set].call(self,val) if options[:after_set]
       end
@@ -98,7 +97,7 @@ module SimpleModel
     # Only set default if there is a default value, initializing is allow and
     # new attributes do not have a value to set and
     def allow_init_default?(d,k,v)
-      (v[:default] && (v[:initialize] != false) && (!d.key?(k) && !attributes_have_alias?(d,k)))
+      (v[:default] && v[:initialize] && (!d.key?(k) && !attributes_have_alias?(d,k)))
     end
 
     def attributes_have_alias?(attrs,attr)
@@ -106,24 +105,28 @@ module SimpleModel
     end
 
     def allow_attribute_action?(val,options)
-      return true if (options[:if].blank? && options[:unless].blank?)
+      return true unless (options[:if] || options[:unless])
       b = true
-      if options[:if].is_a?(Symbol)
-        if options[:if] == :blank
-          b =  (b && val.blank?)
+      opt = options[:if]
+      if opt.is_a?(Symbol)
+        if opt == :blank
+          b = val.blank?
         else
-          b = (b && send(options[:if]))
+          b = send(opt)
         end
+      elsif opt.is_a?(Proc)
+        b = opt.call(self,val)
       end
-      b = (b && options[:if].call(self,val)) if options[:if].is_a?(Proc)
-      if options[:unless].is_a?(Symbol)
-        if options[:unless] == :blank
-          b = (b && !val.blank?)
+      opt = options[:unless]
+      if opt.is_a?(Symbol)
+        if opt == :blank
+          b = !val.blank?
         else
-          b = (b && !send(options[:unless]))
+          b = !send(opt)
         end
+      elsif opt.is_a?(Proc)
+        b = !opt.call(self,val)
       end
-      b = (b && !options[:unless].call(self,val)) if options[:unless].is_a?(Proc)
       b
     end
 
