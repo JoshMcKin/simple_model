@@ -130,7 +130,7 @@ module SimpleModel
     end
 
     # Rails 3.2 + required when searching for attributes in from inherited classes/models
-    def attribute(name)
+    def attribute(attr)
        get_attribute(attr)
     end
 
