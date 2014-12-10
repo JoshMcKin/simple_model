@@ -107,23 +107,25 @@ module SimpleModel
     def allow_attribute_action?(val,options)
       return true unless (options[:if] || options[:unless])
       b = true
-      if options[:if].is_a?(Symbol)
-        if options[:if] == :blank
+      opt = options[:if]
+      if opt.is_a?(Symbol)
+        if opt == :blank
           b = val.blank?
         else
-          b = send(options[:if])
+          b = send(opt)
         end
-      elsif options[:if].is_a?(Proc)
-        b = options[:if].call(self,val)
+      elsif opt.is_a?(Proc)
+        b = opt.call(self,val)
       end
-      if options[:unless].is_a?(Symbol)
-        if options[:unless] == :blank
+      opt = options[:unless]
+      if opt.is_a?(Symbol)
+        if opt == :blank
           b = !val.blank?
         else
-          b = !send(options[:unless])
+          b = !send(opt)
         end
-      elsif options[:unless].is_a?(Proc)
-        b = !options[:unless].call(self,val)
+      elsif opt.is_a?(Proc)
+        b = !opt.call(self,val)
       end
       b
     end
