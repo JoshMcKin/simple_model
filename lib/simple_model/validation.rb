@@ -25,13 +25,13 @@ module SimpleModel
         end
       end
     end
-    
+
     def validates_length_of(*attr_names)
       options = attr_names.extract_options!
 
       attr_names.each do |attr|
         break if conditional?(options)
-    
+
         att_method = send(attr)
         unless att_method.blank?
           errors.add(attr,(options[:message].blank? ? "must equal #{options[:is]} characters in length." : options[:message]))  if options[:is] && att_method.to_s.length != options[:is]
@@ -59,8 +59,8 @@ module SimpleModel
     private
     def conditional?(options)
       return true unless ((options[:if].blank? && options[:unless].blank?) ||
-          !options[:if].blank? && send(options[:if])) ||
+      !options[:if].blank? && send(options[:if])) ||
         (!options[:unless].blank? && !send(options[:unless]))
-    end 
+    end
   end
 end

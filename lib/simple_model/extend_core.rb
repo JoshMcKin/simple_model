@@ -4,13 +4,13 @@ module SimpleModel
     require 'date'
     require 'bigdecimal'
     require 'bigdecimal/util'
-    
-    Float.class_eval do   
+
+    Float.class_eval do
       # that does not equal 0.0 is true
       def to_b
         self != 0.0
       end
-      
+
       # Rounds float to the precision specified
       # 100.5235.round_to #=> 101.0
       # 100.5235.round_to(1) #=> 101.5
@@ -71,7 +71,7 @@ module SimpleModel
       # * safe_date_string("12/31/2010")              # => '2010-12-31'
       # * safe_date_string("12/31/2010T23:30:25")     # => '2010-12-31T23:30:25'
       # * safe_date_string("12/31/2010 23:30:25")     # => '2010-12-31 23:30:25'
-      # * safe_date_string("\/Date(1310669017000)\/") # => 
+      # * safe_date_string("\/Date(1310669017000)\/") # =>
       def safe_datetime_string
         safe_date = nil
         if self[0..9].match(/^(0[1-9]|[1-9]|1[012])[- \/.]([1-9]|0[1-9]|[12][0-9]|3[01])[- \/.][0-9][0-9][0-9][0-9]/)
@@ -97,7 +97,7 @@ module SimpleModel
         end
         safe_date
       end
-      
+
       # Use safe_datetime_string help with those pesky US date formats in Ruby 1.9
       # or to change an integer string to date
       def to_date
@@ -118,44 +118,44 @@ module SimpleModel
       def to_f
         gsub(/[^0-9\.\+\-]/, '').core_to_f
       end
-      
+
       alias :core_to_d :to_d
-      
+
       def to_d
         gsub(/[^0-9\.\+\-]/, '').core_to_d
       end
       alias :to_currency :to_d
-      
+
     end
-    
+
     BigDecimal.class_eval do
       def to_currency_s(symbol="$")
         self.to_f.to_currency_s(symbol)
-      end 
-      
+      end
+
       def to_b
         self != 0.0
       end
     end
-    
+
     Fixnum.class_eval do
       def to_currency_s(symbol="$")
         self.to_f.to_currency_s(symbol)
       end
-      
+
       unless Fixnum.instance_methods.include?(:to_b)
         #Any value greater than 0 is true
         def to_b
           self > 0
         end
       end
-      
+
       unless Fixnum.instance_methods.include?(:to_d)
         def to_d
           BigDecimal.new("#{self}.0")
         end
       end
-      
+
       unless Fixnum.instance_methods.include?(:to_date)
         def to_date
           Time.at(self).to_date

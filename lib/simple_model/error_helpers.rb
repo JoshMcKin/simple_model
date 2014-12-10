@@ -1,6 +1,6 @@
 module SimpleModel
   module ErrorHelpers
- 
+
     attr_accessor :errors_count
 
     def errors?
@@ -10,13 +10,12 @@ module SimpleModel
 
     def errors_for_flash(options={})
       #set defaults and overwrite
-      options = {
-        :failed_action => "saving",
-        :id => 'errorExplanation',
-        :classes =>  ''}.merge!(options)
-    
+      options = {:failed_action => "saving",
+                 :id => 'errorExplanation',
+                 :classes =>  ''}.merge!(options)
+
       error_list  = ""
-      
+
       # The active_model errors object is not a normal hash and the each method
       # for the active_mode errors object does not perform as expected
       # so make it a plain hash
@@ -39,7 +38,7 @@ module SimpleModel
         value.uniq!
         if value.length == 1
           self.errors_count = (self.errors_count.to_i + 1)
-          error_items << "<li>#{key.to_s.titleize} #{value[0]}</li>" 
+          error_items << "<li>#{key.to_s.titleize} #{value[0]}</li>"
         else
           error_items << "<li><ul>#{key.to_s.titleize} errors:"
           value.each do |item|
@@ -78,6 +77,6 @@ module SimpleModel
       end
       error_string
     end
-   
+
   end
 end

@@ -13,12 +13,13 @@ Benchmark.bm do |b|
       BenchClass.new()
     end
   end
-  BenchClass.new()
+
   b.report("initialize with attrs") do
     30000.times.each  do
       BenchClass.new(:num => 1, :dec => "12.4")
     end
   end
+  
   b.report("get") do
     30000.times.each  do
       klass = BenchClass.new

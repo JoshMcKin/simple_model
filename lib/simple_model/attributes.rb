@@ -7,7 +7,7 @@ module SimpleModel
     
     def initialize(*attrs)
       attrs = attrs.extract_options!
-      attrs = attributes_with_for_init(attrs)
+      attrs = attributes_for_init(attrs)
       attrs = self.class.before_initialize.call(self,attrs) if self.class.before_initialize
       set(attrs)
       self.class.after_initialize.call(self) if self.class.after_initialize
@@ -19,11 +19,11 @@ module SimpleModel
 
     # Returns true if attribute has been initialized
     def initialized?(attr)
-      self.attributes.key?(attr.to_sym)
+      attributes.key?(attr)
     end
 
     def get(attr)
-      self.send(attr)
+      send(attr)
     end
     alias :read :get
 
@@ -31,7 +31,7 @@ module SimpleModel
     # set(:foo => "bar", :dime => 0.1)
     def set(*attrs)
       attrs.extract_options!.each do |attr,val|
-        self.send("#{attr.to_s}=",val)
+        send("#{attr}=",val)
       end
     end
     alias :set_attributes :set
@@ -41,17 +41,17 @@ module SimpleModel
       if allow_attribute_action?(val,options)
         val = fetch_default_value(options[:default]) if (!options[:allow_blank] && options.key?(:default) && val.blank?)
         val = options[:on_set].call(self,val) if options[:on_set] #(!options.key?(:on_set) || (val.blank? && !options[:allow_blank]) )
-        self.send("#{attr}_will_change!") if (initialized?(attr) && val != self.attributes[attr])
-        self.attributes[attr] = val
+        send("#{attr}_will_change!") if (initialized?(attr) && val != attributes[attr])
+        attributes[attr] = val
         options[:after_set].call(self,val) if options[:after_set]
       end
     end
 
     def get_attribute(attr)
-      val = self.attributes[attr]
+      val = attributes[attr]
       options = self.class.defined_attributes[attr] || {}
-      if (options.key?(:default) && (!self.initialized?(attr) || (!options[:allow_blank] && val.blank?)))
-        val = self.attributes[attr] = fetch_default_value(options[:default])
+      if (options.key?(:default) && (!initialized?(attr) || (!options[:allow_blank] && val.blank?)))
+        val = attributes[attr] = fetch_default_value(options[:default])
       end
       if options[:on_get]
         options[:on_get].call(self,val)
@@ -77,18 +77,17 @@ module SimpleModel
     end
 
     def fetch_default_value(arg)
-      return self.send(arg) if (arg.is_a?(Symbol) && self.respond_to?(arg))
+      return send(arg) if (arg.is_a?(Symbol) && self.respond_to?(arg))
       arg
     end
 
     # Returns attribute that have defaults in a hash: {:attribute => "default value"}
     # Checks for alias attributes to ensure they are not overwritten
-    def attributes_with_for_init(attrs)
-      d = attrs.with_indifferent_access
+    def attributes_for_init(attrs)
+      d = (attrs.is_a?(HashWithIndifferentAccess) ? attrs : attrs.with_indifferent_access )
       self.class.defined_attributes.each do |k,v|
-        key = k.to_sym
-        if allow_init_default?(d,key,v)
-          d[key] = fetch_default_value(v[:default])
+        if allow_init_default?(d,k,v)
+          d[k] = fetch_default_value(v[:default])
         end
       end
       d
@@ -101,7 +100,7 @@ module SimpleModel
     end
 
     def attributes_have_alias?(attrs,attr)
-      !(self.class.alias_attributes.select{ |a, m| (m == attr && attrs.key?(a.to_sym)) }).empty?
+      !(self.class.alias_attributes.select{ |a, m| (m == attr.to_sym && attrs.key?(a)) }).empty?
     end
 
     def allow_attribute_action?(val,options)
@@ -132,7 +131,7 @@ module SimpleModel
 
     # Rails 3.2 + required when searching for attributes in from inherited classes/models
     def attribute(name)
-      attributes[name.to_sym]
+       get_attribute(attr)
     end
 
     module ClassMethods
@@ -177,7 +176,7 @@ module SimpleModel
       def new_with_store(session_hash)
         nw = self.new()
         nw.attributes = session_hash
-        nw.set(nw.send(:attributes_with_for_init,session_hash))
+        nw.set(nw.send(:attributes_for_init,session_hash))
         nw
       end
 
@@ -198,7 +197,7 @@ module SimpleModel
       end
 
       def attribute_defined?(attr)
-        (self.defined_attributes.member?(attr) || self.superclass.respond_to?(:attribute_defined?) && self.superclass.attribute_defined?(attr))
+        defined_attributes.key?(attr)
       end
 
       # The default settings for a SimpeModel class
@@ -221,15 +220,15 @@ module SimpleModel
       # at once, so we must set @attribute_methods_generated to nil to allow the
       # re-run to occur ONLY IN RAILS 3.0.
       def add_defined_attribute(attr,options)
-        self.defined_attributes[attr] = options
+        defined_attributes[attr] = options
         @attribute_methods_generated = nil #if (ActiveModel::VERSION::MAJOR == 3 && ActiveModel::VERSION::MINOR == 0)
         define_attribute_methods(defined_attributes_keys)
       end
 
       # We don't want to call define_attribute_methods on methods defined in the parent class
       def defined_attributes_keys
-        dak = self.defined_attributes.keys
-        dak = dak - self.superclass.defined_attributes.keys if self.superclass.respond_to?(:defined_attributes)
+        dak = defined_attributes.keys
+        dak = dak - superclass.defined_attributes.keys if superclass.respond_to?(:defined_attributes)
         dak
       end
 
@@ -276,13 +275,13 @@ module SimpleModel
         alias_attributes[new_alias] = attr
 
         define_method(new_alias) do
-          self.send(attr)
+          send(attr)
         end
         define_method("#{new_alias}?") do
-          self.send("#{attr}?")
+          send("#{attr}?")
         end
         define_method("#{new_alias.to_s}=") do |*args, &block|
-          self.send("#{attr.to_s}=",*args, &block)
+          send("#{attr}=",*args, &block)
         end
       end
 
@@ -299,7 +298,7 @@ module SimpleModel
       # should return a hash to be set
       # EX: lambda {|obj,attrs| attrs.select{|k,v| !v.blank?}}
       def before_initialize=before_initialize
-        raise TypeError "before_initialize must be a lambda that accepts the attirbutes to be initialize" unless before_initialize.is_a?(Proc)
+        raise TypeError "before_initialize must be a lambda that accepts the attributes to be initialize" unless before_initialize.is_a?(Proc)
         @before_initialize = before_initialize
       end
 
@@ -322,8 +321,8 @@ module SimpleModel
       # hack to keep things working when a class inherits from a super that
       # has ActiveModel::Dirty included
       def inherited(base)
-        base.defined_attributes = self.defined_attributes.merge(base.defined_attributes)
-        base.alias_attributes = self.alias_attributes.merge(base.alias_attributes)
+        base.defined_attributes = defined_attributes.merge(base.defined_attributes)
+        base.alias_attributes = alias_attributes.merge(base.alias_attributes)
         super
         # Rails 3.0 Hack
         if (ActiveModel::VERSION::MAJOR == 3 && ActiveModel::VERSION::MINOR == 0)
