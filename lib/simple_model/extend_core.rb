@@ -1,4 +1,23 @@
 module SimpleModel
+  module ToCurrencyS
+    def to_currency_s(symbol='$',rnd=2)
+      cs = self.round(rnd).abs.to_s
+      while cs.index('.') != (cs.length-3)
+        cs << '0'
+      end
+      comma = 6
+      while cs.length > (comma)
+        cs.insert((cs.length - comma), ",")
+        comma += 4
+      end
+      cs.insert(0,symbol) if symbol
+      if self < 0
+        cs.insert(0, "-")
+      end
+      cs
+    end
+  end
+
   module ExtendCore
     require 'time'
     require 'date'
@@ -6,9 +25,10 @@ module SimpleModel
     require 'bigdecimal/util'
 
     Float.class_eval do
+      include ToCurrencyS
       # that does not equal 0.0 is true
       def to_b
-        self != 0.0
+        zero?
       end
 
       # Rounds float to the precision specified
@@ -24,26 +44,6 @@ module SimpleModel
       # Why decimal?..because precision matters when dealing with money ;)
       def to_currency
         self.to_d.round(2)
-      end
-
-      # Returns a string with representation of currency, rounded to nearest hundredth
-      def to_currency_s(symbol="$")      
-        num = self.round_to(2).to_s
-        neg = num.include?("-")
-        while num.index('.') != (num.length-3)
-          num << '0'
-        end
-        comma = 6
-        while num.length > (comma)
-          num.insert((num.length - comma), ",")
-          comma += 4
-        end
-        num.insert(0,symbol)
-        if neg
-          num.delete!("-")
-          num.insert(0, "-")
-        end
-        num
       end
       
       def to_time
@@ -76,18 +76,14 @@ module SimpleModel
         safe_date = nil
         if self[0..9].match(/^(0[1-9]|[1-9]|1[012])[- \/.]([1-9]|0[1-9]|[12][0-9]|3[01])[- \/.][0-9][0-9][0-9][0-9]/)
           safe_date = ""
-          if self.include?("/")
-            split = self.split("/")
-          else
-            split = self.split("-")
-          end
+          splt = split(/\-|\/|\./)
           time = ""
-          if split[2].length > 4
-            time = split[2][4..(split[2].length - 1)]
-            split[2] = split[2][0..3]
+          if splt[2].length > 4
+            time = splt[2][4..(splt[2].length - 1)]
+            splt[2] = splt[2][0..3]
           end
-          if split.length == 3 && split[2].length == 4
-            safe_date << "#{split[2]}-#{split[0]}-#{split[1]}"
+          if splt.length == 3 && splt[2].length == 4
+            safe_date << "#{splt[2]}-#{splt[0]}-#{splt[1]}"
             safe_date << "#{time}" unless time.nil? || time.to_s.length == 0
           end
         elsif self.match(/^\/Date\(/)
@@ -129,30 +125,24 @@ module SimpleModel
     end
 
     BigDecimal.class_eval do
-      def to_currency_s(symbol="$")
-        self.to_f.to_currency_s(symbol)
-      end
+      include ToCurrencyS
 
       def to_b
-        self != 0.0
+        zero?
       end
     end
-
     Fixnum.class_eval do
-      def to_currency_s(symbol="$")
-        self.to_f.to_currency_s(symbol)
-      end
+      include ToCurrencyS
 
       unless Fixnum.instance_methods.include?(:to_b)
-        #Any value greater than 0 is true
         def to_b
-          self > 0
+          zero?
         end
       end
 
       unless Fixnum.instance_methods.include?(:to_d)
         def to_d
-          BigDecimal.new("#{self}.0")
+          BigDecimal.new(self)
         end
       end
 
@@ -176,7 +166,7 @@ module SimpleModel
       end
       unless NilClass.instance_methods.include?(:to_d)
         def to_d
-          BigDecimal.new("0.0")
+          BigDecimal.new('')
         end
       end
     end
