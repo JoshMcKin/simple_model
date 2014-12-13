@@ -28,7 +28,7 @@ module SimpleModel
       include ToCurrencyS
       # that does not equal 0.0 is true
       def to_b
-        zero?
+        !zero?
       end
 
       # Rounds float to the precision specified
@@ -128,7 +128,7 @@ module SimpleModel
       include ToCurrencyS
 
       def to_b
-        zero?
+        !zero?
       end
     end
     Fixnum.class_eval do
@@ -136,7 +136,7 @@ module SimpleModel
 
       unless Fixnum.instance_methods.include?(:to_b)
         def to_b
-          zero?
+          !zero?
         end
       end
 
