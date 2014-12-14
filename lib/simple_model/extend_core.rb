@@ -74,7 +74,7 @@ module SimpleModel
       # * safe_date_string("\/Date(1310669017000)\/") # =>
       def safe_datetime_string
         safe_date = nil
-        if self[0..9].match(/^(0[1-9]|[1-9]|1[012])[- \/.]([1-9]|0[1-9]|[12][0-9]|3[01])[- \/.][0-9][0-9][0-9][0-9]/)
+        if self[0..9] =~ (/^(0[1-9]|[1-9]|1[012])[- \/.]([1-9]|0[1-9]|[12][0-9]|3[01])[- \/.][0-9][0-9][0-9][0-9]/)
           safe_date = ""
           splt = split(/\-|\/|\./)
           time = ""
@@ -86,8 +86,8 @@ module SimpleModel
             safe_date << "#{splt[2]}-#{splt[0]}-#{splt[1]}"
             safe_date << "#{time}" unless time.nil? || time.to_s.length == 0
           end
-        elsif self.match(/^\/Date\(/)
-          safe_date = Time.at(((self.gsub(/(\/Date\()/,"")).gsub(/\)\/$/,"").to_f) / 1000).to_s
+        elsif self =~ /^\/Date\(/
+          safe_date = Time.at(((self.gsub(/(\/Date\()/,"")).gsub(/\)\/$/,"").to_i) / 1000).to_s
         else
           safe_date = self
         end
@@ -97,14 +97,14 @@ module SimpleModel
       # Use safe_datetime_string help with those pesky US date formats in Ruby 1.9
       # or to change an integer string to date
       def to_date
-        return safe_datetime_string.to_i.to_date if self.match(/^+d$/)
+        return safe_datetime_string.to_i.to_date if self =~ /^+d$/
         Date.parse(safe_datetime_string)
       end
 
       # Use safe_datetime_string help with those pesky US date formats in Ruby 1.9
       # or to change an integer string to date
       def to_time
-        return safe_datetime_string.to_i.to_time if self.match(/^+d$/)
+        return safe_datetime_string.to_i.to_time if self =~ /^+d$/
         Time.parse(safe_datetime_string)
       end
 

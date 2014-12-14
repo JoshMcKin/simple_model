@@ -19,7 +19,7 @@ Benchmark.bm do |b|
       BenchClass.new(:num => 1, :dec => "12.4")
     end
   end
-  
+
   b.report("get") do
     30000.times.each  do
       klass = BenchClass.new

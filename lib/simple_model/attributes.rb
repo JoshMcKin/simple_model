@@ -61,13 +61,13 @@ module SimpleModel
     end
 
     def get_attribute?(attr)
-      val = get_attribute(attr)
+      return false unless val = get_attribute(attr)
       if val.respond_to?(:blank?)
         return !val.blank?
       elsif val.respond_to?(:to_b) 
         return val.to_b
       end
-      val
+      !val.nil?
     end
 
     private
@@ -247,7 +247,7 @@ module SimpleModel
         define_method(attr) do
           get_attribute(attr)
         end
-        define_method("#{attr.to_s}?") do
+        define_method("#{attr}?") do
           get_attribute?(attr)
         end
       end
@@ -256,7 +256,7 @@ module SimpleModel
       # On set, it will mark the attribute as changed if the attributes has been
       # initialized.
       def define_setter_with_options(attr,options)
-        define_method("#{attr.to_s}=") do |val|
+        define_method("#{attr}=") do |val|
           set_attribute(attr,val)
         end
       end
@@ -280,7 +280,7 @@ module SimpleModel
         define_method("#{new_alias}?") do
           send("#{attr}?")
         end
-        define_method("#{new_alias.to_s}=") do |*args, &block|
+        define_method("#{new_alias}=") do |*args, &block|
           send("#{attr}=",*args, &block)
         end
       end
