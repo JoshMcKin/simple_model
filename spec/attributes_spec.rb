@@ -170,6 +170,50 @@ describe SimpleModel::Attributes do
     end
   end
 
+  context 'number and date/time attributes' do
+    before(:all) do
+      class NumDateTime
+        include SimpleModel::Attributes
+        has_date :my_date
+        has_time :my_time
+        has_int :my_int
+        has_int :blank_int, :allow_blank => true
+        has_decimal :my_decimal
+        has_decimal :blank_decimal, :allow_blank => true
+        has_float :my_float
+        has_attribute :my_attr
+        has_boolean :my_boolean
+      end
+    end
+    context "default options for number attributes" do
+      context "set with blank value" do
+        it "should not initialize" do
+          num_date_time = NumDateTime.new(:my_date => nil, :my_time => "", :my_int => " ", :my_decimal => nil, :my_float => '')
+          expect(num_date_time.initialized?(:my_date)).to eql(false)
+          expect(num_date_time.initialized?(:my_time)).to eql(false)
+          expect(num_date_time.initialized?(:my_int)).to eql(false)
+          expect(num_date_time.initialized?(:my_decimal)).to eql(false)
+          expect(num_date_time.initialized?(:my_float)).to eql(false)
+        end
+      end
+      context "override to allow_blank" do
+        it "should not initialize" do
+          num_date_time = NumDateTime.new(:blank_int => nil, :blank_decimal => "")
+          expect(num_date_time.initialized?(:blank_int)).to eql(true)
+          expect(num_date_time.initialized?(:blank_decimal)).to eql(true)
+        end
+      end
+    end
+
+    context "set with blank value" do
+      it "should not initialize" do
+        num_date_time = NumDateTime.new(:my_attr => nil, :my_boolean => "")
+        expect(num_date_time.initialized?(:my_attr)).to eql(true)
+        expect(num_date_time.initialized?(:my_boolean)).to eql(true)
+      end
+    end
+  end
+
   context 'options with conditional' do
     before(:all) do
       class WithConditional
@@ -277,9 +321,9 @@ describe SimpleModel::Attributes do
     end
 
     it "should properly alias attributes from parent class" do
-     nb =  NewestBase.new(:some_amount => 1.0)
-     nb.other_amount.should eql(1.0.to_d)
-     nb.amount.should eql(1.0.to_d)
+      nb =  NewestBase.new(:some_amount => 1.0)
+      nb.other_amount.should eql(1.0.to_d)
+      nb.amount.should eql(1.0.to_d)
     end
   end
 

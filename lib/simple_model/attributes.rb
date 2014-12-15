@@ -39,11 +39,15 @@ module SimpleModel
     def set_attribute(attr,val)
       options = self.class.defined_attributes[attr] || {}
       if allow_attribute_action?(val,options)
-        val = fetch_default_value(options[:default]) if (!options[:allow_blank] && options.key?(:default) && val.blank?)
-        val = options[:on_set].call(self,val) if options[:on_set] #(!options.key?(:on_set) || (val.blank? && !options[:allow_blank]) )
-        send("#{attr}_will_change!") if (initialized?(attr) && val != attributes[attr])
-        attributes[attr] = val
-        options[:after_set].call(self,val) if options[:after_set]
+        allow_blank = options[:allow_blank]
+        default = options[:default]
+        val = fetch_default_value(default) if (!allow_blank && default && val.blank?)
+        unless (val.blank? && !allow_blank)
+          val = options[:on_set].call(self,val) if options.key?(:on_set)
+          send("#{attr}_will_change!") if (initialized?(attr) && val != attributes[attr])
+          attributes[attr] = val
+          options[:after_set].call(self,val) if options[:after_set]
+        end
       end
     end
 
@@ -136,13 +140,13 @@ module SimpleModel
 
     module ClassMethods
       DEFAULT_ATTRIBUTE_SETTINGS = {:attributes_method => :attributes,
-                                    :allow_blank => true,
+                                    :allow_blank => false,
                                     :initialize => true
                                     }.freeze
 
       AVAILABLE_ATTRIBUTE_METHODS = {
-        :has_attribute => {:alias => :has_attributes},
-        :has_boolean  => {:cast_to => :to_b, :alias => :has_booleans},
+        :has_attribute => {:alias => :has_attributes, :options => {:allow_blank => true}},
+        :has_boolean  => {:cast_to => :to_b, :alias => :has_booleans, :options =>  {:allow_blank => true}},
         :has_currency => {:cast_to => :to_d, :alias => :has_currencies},
         :has_date => {:cast_to => :to_date, :alias => :has_dates} ,
         :has_decimal  => {:cast_to => :to_d, :alias => :has_decimals},
@@ -153,7 +157,9 @@ module SimpleModel
 
       AVAILABLE_ATTRIBUTE_METHODS.each do |method,method_options|
         define_method(method) do |*attributes|
-          options = default_attribute_settings.merge(attributes.extract_options!)
+          options = attributes.extract_options!
+          options = method_options[:options].merge(options) if method_options[:options]
+          options = default_attribute_settings.merge(options)
           options[:on_set] = lambda {|obj,val| val.send(method_options[:cast_to]) } if method_options[:cast_to]
           create_attribute_methods(attributes,options)
         end
