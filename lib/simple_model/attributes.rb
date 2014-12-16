@@ -40,9 +40,8 @@ module SimpleModel
       options = self.class.defined_attributes[attr] || {}
       if allow_attribute_action?(val,options)
         allow_blank = options[:allow_blank]
-        default = options[:default]
-        val = fetch_default_value(default) if (!allow_blank && default && val.blank?)
-        unless (val.blank? && !allow_blank)
+        val = fetch_default_value(options[:default]) if (!allow_blank && options.key?(:default) && val.blank?)
+        unless (!allow_blank && val.blank?)
           val = options[:on_set].call(self,val) if options.key?(:on_set)
           send("#{attr}_will_change!") if (initialized?(attr) && val != attributes[attr])
           attributes[attr] = val
