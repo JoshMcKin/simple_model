@@ -1,7 +1,7 @@
 module SimpleModel
   module ToCurrencyS
     def to_currency_s(symbol='$',rnd=2)
-      cs = self.round(rnd).abs.to_s
+      cs = (rnd ? self.round(rnd) : self).abs.to_s
       while cs.index('.') != (cs.length-3)
         cs << '0'
       end

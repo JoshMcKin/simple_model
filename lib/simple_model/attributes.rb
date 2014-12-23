@@ -3,8 +3,26 @@ module SimpleModel
     include ExtendCore
     extend ActiveSupport::Concern
     include ActiveModel::AttributeMethods
+    include ActiveModel::Dirty
+
+    DEFAULT_ATTRIBUTE_SETTINGS = {:attributes_method => :attributes,
+                                  :allow_blank => false,
+                                  :initialize => true
+                                  }.freeze
+
+    AVAILABLE_ATTRIBUTE_METHODS = {
+      :has_attribute => {:alias => :has_attributes, :options => {:allow_blank => true}},
+      :has_boolean  => {:cast_to => :to_b, :alias => :has_booleans, :options =>  {:allow_blank => true, :boolean => true}},
+      :has_currency => {:cast_to => :to_d, :alias => :has_currencies},
+      :has_date => {:cast_to => :to_date, :alias => :has_dates} ,
+      :has_decimal  => {:cast_to => :to_d, :alias => :has_decimals},
+      :has_float => {:cast_to => :to_f, :alias => :has_floats},
+      :has_int => {:cast_to => :to_i, :alias => :has_ints},
+      :has_time => {:cast_to => :to_time, :alias => :has_times}
+    }.freeze
+
     attr_accessor :attributes
-    
+
     def initialize(*attrs)
       attrs = attrs.extract_options!
       attrs = attributes_for_init(attrs)
@@ -36,47 +54,66 @@ module SimpleModel
     end
     alias :set_attributes :set
 
-    def set_attribute(attr,val)
-      options = self.class.defined_attributes[attr] || {}
-      if allow_attribute_action?(val,options)
-        allow_blank = options[:allow_blank]
-        val = fetch_default_value(options[:default]) if (!allow_blank && options.key?(:default) && val.blank?)
-        unless (!allow_blank && val.blank?)
-          val = options[:on_set].call(self,val) if options.key?(:on_set)
+    def set_attribute(attr,val,opts=nil)
+      opts ||= fetch_attribute_options(attr)
+      if allow_attribute_action?(val,opts)
+        allow_blank = opts[:allow_blank]
+        val = fetch_default_value(opts[:default]) unless skip_set_default?(attr,opts,val)
+        unless (opts[:boolean] ? (!allow_blank && val.blank? && (val != false)) : (!allow_blank && val.blank?))
+          val = opts[:on_set].call(self,val) if opts.key?(:on_set)
           send("#{attr}_will_change!") if (initialized?(attr) && val != attributes[attr])
           attributes[attr] = val
-          options[:after_set].call(self,val) if options[:after_set]
+          opts[:after_set].call(self,val) if opts[:after_set]
         end
       end
     end
 
-    def get_attribute(attr)
+    def get_attribute(attr,opts=nil)
+      opts ||= fetch_attribute_options(attr)
       val = attributes[attr]
-      options = self.class.defined_attributes[attr] || {}
-      if (options.key?(:default) && (!initialized?(attr) || (!options[:allow_blank] && val.blank?)))
-        val = attributes[attr] = fetch_default_value(options[:default])
-      end
-      if options[:on_get]
-        options[:on_get].call(self,val)
+      val = attributes[attr] ||= fetch_default_value(opts[:default]) unless skip_get_default?(attr,opts,val)
+      if opts[:on_get]
+        opts[:on_get].call(self,val)
       else
         val
       end
     end
 
+    def fetch_attribute_options(attr)
+      self.class.defined_attributes[attr] || {}
+    end
+
     def get_attribute?(attr)
-      return false unless val = get_attribute(attr)
+      return false unless val = send(attr)
       if val.respond_to?(:blank?)
         return !val.blank?
-      elsif val.respond_to?(:to_b) 
+      elsif val.respond_to?(:to_b)
         return val.to_b
       end
       !val.nil?
     end
 
-    private
-
     def attribute_defined?(attr)
       self.class.attribute_defined?(attr)
+    end
+
+    # Rails 3.2 + required when searching for attributes in from inherited classes/models
+    def attribute(attr)
+      get_attribute(attr)
+    end
+
+    private
+
+    def skip_get_default?(attr,opts,val)
+      (val || !opts.key?(:default) || (opts[:boolean] && (val == false)))
+    end
+
+    def skip_set_default?(attr,opts,val)
+      return true if (!opts.key?(:default) ||
+                      initialized?(attr) ||
+                      (opts[:boolean] && (val == false)))
+      blnk = val.blank?
+      (!blnk || (blnk && opts[:allow_blank]))
     end
 
     def fetch_default_value(arg)
@@ -103,57 +140,40 @@ module SimpleModel
     end
 
     def attributes_have_alias?(attrs,attr)
-      !(self.class.alias_attributes.select{ |a, m| (m == attr.to_sym && attrs.key?(a)) }).empty?
+      base_meth = self.class.alias_attributes.rassoc(attr.to_sym)
+      base_meth && attrs.key?(base_meth[0])
+      #!(self.class.alias_attributes.select{ |a, m| (m == attr.to_sym && attrs.key?(a)) }).empty?
     end
 
     def allow_attribute_action?(val,options)
       return true unless (options[:if] || options[:unless])
       b = true
-      opt = options[:if]
-      if opt.is_a?(Symbol)
-        if opt == :blank
-          b = val.blank?
-        else
-          b = send(opt)
+      if opt = options[:if]
+        if opt.is_a?(Symbol)
+          if opt == :blank
+            b = val.blank?
+          else
+            b = send(opt)
+          end
+        elsif opt.is_a?(Proc)
+          b = opt.call(self,val)
         end
-      elsif opt.is_a?(Proc)
-        b = opt.call(self,val)
       end
-      opt = options[:unless]
-      if opt.is_a?(Symbol)
-        if opt == :blank
-          b = !val.blank?
-        else
-          b = !send(opt)
+      if opt = options[:unless]
+        if opt.is_a?(Symbol)
+          if opt == :blank
+            b = !val.blank?
+          else
+            b = !send(opt)
+          end
+        elsif opt.is_a?(Proc)
+          b = !opt.call(self,val)
         end
-      elsif opt.is_a?(Proc)
-        b = !opt.call(self,val)
       end
       b
     end
 
-    # Rails 3.2 + required when searching for attributes in from inherited classes/models
-    def attribute(attr)
-       get_attribute(attr)
-    end
-
     module ClassMethods
-      DEFAULT_ATTRIBUTE_SETTINGS = {:attributes_method => :attributes,
-                                    :allow_blank => false,
-                                    :initialize => true
-                                    }.freeze
-
-      AVAILABLE_ATTRIBUTE_METHODS = {
-        :has_attribute => {:alias => :has_attributes, :options => {:allow_blank => true}},
-        :has_boolean  => {:cast_to => :to_b, :alias => :has_booleans, :options =>  {:allow_blank => true}},
-        :has_currency => {:cast_to => :to_d, :alias => :has_currencies},
-        :has_date => {:cast_to => :to_date, :alias => :has_dates} ,
-        :has_decimal  => {:cast_to => :to_d, :alias => :has_decimals},
-        :has_float => {:cast_to => :to_f, :alias => :has_floats},
-        :has_int => {:cast_to => :to_i, :alias => :has_ints},
-        :has_time => {:cast_to => :to_time, :alias => :has_times}
-      }.freeze
-
       AVAILABLE_ATTRIBUTE_METHODS.each do |method,method_options|
         define_method(method) do |*attributes|
           options = attributes.extract_options!
@@ -162,7 +182,7 @@ module SimpleModel
           options[:on_set] = lambda {|obj,val| val.send(method_options[:cast_to]) } if method_options[:cast_to]
           create_attribute_methods(attributes,options)
         end
-        module_eval("alias #{method_options[:alias]} #{method}")
+        module_eval("alias #{method_options[:alias]} #{method}") if method_options[:alias]
       end
 
       # Creates a new instance where the attributes store is set to object
@@ -250,7 +270,7 @@ module SimpleModel
 
       def define_reader_with_options(attr,options)
         define_method(attr) do
-          get_attribute(attr)
+          get_attribute(attr,options)
         end
         define_method("#{attr}?") do
           get_attribute?(attr)
@@ -262,14 +282,14 @@ module SimpleModel
       # initialized.
       def define_setter_with_options(attr,options)
         define_method("#{attr}=") do |val|
-          set_attribute(attr,val)
+          set_attribute(attr,val,options)
         end
       end
 
       # Creates alias setter and getter for the supplied attribute using the supplied alias
       # See spec for example.
       def alias_attribute(new_alias,attr)
-        
+
         # get to the base attribute
         while alias_attributes[attr]
           attr = alias_attributes[attr]
@@ -330,7 +350,7 @@ module SimpleModel
         base.alias_attributes = alias_attributes.merge(base.alias_attributes)
         super
         # Rails 3.0 Hack
-        if (ActiveModel::VERSION::MAJOR == 3 && ActiveModel::VERSION::MINOR == 0)
+        if (ActiveModel::VERSION::MAJOR == 3 && ActiveModel::VERSION::MINOR < 1)
           base.attribute_method_suffix '_changed?', '_change', '_will_change!', '_was'
           base.attribute_method_affix :prefix => 'reset_', :suffix => '!'
         end
@@ -342,7 +362,6 @@ module SimpleModel
     # ActiveModel::Dirty included
     def self.included(base)
       base.extend(Attributes::ClassMethods)
-      base.send(:include, ActiveModel::Dirty)
       base.send(:include, ActiveModel::Validations)
       base.send(:include, ActiveModel::Conversion)
       base.extend ActiveModel::Naming
@@ -350,7 +369,7 @@ module SimpleModel
       base.send(:include, ActiveModel::Validations::Callbacks)
 
       # Rails 3.0 Hack
-      if (ActiveModel::VERSION::MAJOR == 3 && ActiveModel::VERSION::MINOR == 0)
+      if (ActiveModel::VERSION::MAJOR == 3 && ActiveModel::VERSION::MINOR < 1)
         base.attribute_method_suffix '_changed?', '_change', '_will_change!', '_was'
         base.attribute_method_affix :prefix => 'reset_', :suffix => '!'
       end

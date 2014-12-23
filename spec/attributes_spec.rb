@@ -1,335 +1,503 @@
 require 'spec_helper.rb'
 
+class AttributesTest
+  include SimpleModel::Attributes
+end
+
 describe SimpleModel::Attributes do
-  before(:all) do
-    class TestInit
+
+  # We need a clean class for each spec
+  around(:each) do |example|
+    class AttributesTest
       include SimpleModel::Attributes
-      has_attributes :test1,:test2
     end
-    @init = TestInit.new(:test1 => "1", :test2 => '2')
+
+    example.run
+
+    Object.send(:remove_const,:AttributesTest) if defined?(:AttributesTest)
   end
 
-  it "should set provided attributes on initialize" do
-    @init.test1.should eql("1")
-    @init.test2.should eql("2")
-  end
+  context "class methods" do
 
-  it "should include set attributes in attributes hash" do
-    @init.attributes.should be_kind_of(ActiveSupport::HashWithIndifferentAccess)
-    @init.attributes[:test1].should eql("1")
-    @init.attributes[:test2].should eql("2")
-  end
-
-  context '#before_initialize' do
-    before(:all) do
-      class TestInit
-        include SimpleModel::Attributes
-        # Do not initialize blank attributes
-        self.before_initialize = lambda {|obj,attrs| attrs.select{|k,v| !v.blank?}}
-        has_attribute :far
-      end
-    end
-
-    it "should raise an exception if we try to set to something other than a Proc" do
-      lambda {TestInit.before_initialize = "bad stuff"}.should raise_error
-    end
-
-    it "should run the supplied lambda" do
-      t = TestInit.new(:far => "")
-      t.initialized?(:far).should eql(false)
-      t = TestInit.new(:far => "t")
-      t.initialized?(:far).should eql(true)
-    end
-
-  end
-
-  context '#after_initialize' do
-    before(:all) do
-      class TestInit
-        include SimpleModel::Attributes
-        # Do not initialize blank attributes
-        self.after_initialize = lambda { |obj| obj.car = "test" if obj.car.blank?}
-        has_attribute :car
-      end
-    end
-
-    it "should raise an exception if we try to set to something other than a Proc" do
-      lambda {TestInit.after_initialize = "bad stuff"}.should raise_error
-    end
-
-    it "should run the supplied lambda" do
-      t = TestInit.new(:far => "")
-      t.car.should eql("test")
-    end
-
-  end
-
-  context '#new_with_store'do
-    it "should use the provided object as the attribute store" do
-      my_store = {:test1 => 1,:test2 => 2}
-      nw = TestInit.new_with_store(my_store)
-      nw.test1 = 3
-      nw.test1.should eql(3)
-      my_store[:test1].should eql(nw.test1)
-    end
-  end
-
-  context "AVAILABLE_ATTRIBUTE_METHODS" do
-    SimpleModel::Attributes::ClassMethods::AVAILABLE_ATTRIBUTE_METHODS.each do |m,options|
-      it "should respond to #{m}" do
-        TestInit.respond_to?(m).should eql(true)
-      end
-      it "should respond to alias #{options[:alias]}" do
-        TestInit.respond_to?(options[:alias]).should eql(true)
-      end
-    end
-  end
-
-  context '#has_attribute' do
-    before(:all) do
-      class TestDefault
-        include SimpleModel::Attributes
-        has_attribute :foo, :default => "foo", :allow_blank => false
-        has_attribute :bar, :default => :default_value
-        has_attribute :fab, :default => :some_symbol
-        has_attribute :hop, :default => :default_hop, :allow_blank => false
-        has_attribute :tip, :default => "2", :initialize => false, :allow_blank => false
-        has_attribute :nap
-        has_attribute :my_array, :default => []
-        def default_value
-          "bar"
+    describe '#create_attribute_methods' do
+      context "no options" do
+        before(:each) do
+          AttributesTest.create_attribute_methods([:has_foo],{})
         end
 
-        def default_hop
-          "hop" if nap
+        let(:attributes_test) { AttributesTest.new() }
+
+        it {expect(attributes_test).to respond_to(:has_foo)}
+        it {expect(attributes_test).to respond_to(:has_foo=)}
+        it {expect(attributes_test).to respond_to(:has_foo?)}
+        it "should set the value" do
+          expect(attributes_test.has_foo = "test").to eql("test")
+        end
+
+        it "should get the value" do
+          attributes_test.has_foo = "test"
+          expect(attributes_test.has_foo).to eql("test")
+        end
+
+        it "should get? boolean value" do
+          expect(attributes_test).to_not be_has_foo
+          attributes_test.has_foo = "test"
+          expect(attributes_test).to be_has_foo
         end
       end
 
+      context "options set" do
+
+        context "with default" do
+
+          context "with initialize == true" do
+            before(:each) do
+              AttributesTest.create_attribute_methods([:with_default], {:default => "foo", :initialize => true})
+            end
+
+            let(:attributes_test) { AttributesTest.new() }
+
+            it "should work" do
+              expect(attributes_test.attributes[:with_default]).to eql('foo')
+            end
+
+          end
+
+          context "with initialize == false" do
+            before(:each) do
+              AttributesTest.create_attribute_methods([:with_default_no_init], {:default => "foo", :initialize => false})
+            end
+
+            let(:attributes_test) { AttributesTest.new() }
+
+            it "should work" do
+              expect(attributes_test.attributes).to_not have_key(:with_default_no_init)
+            end
+
+            it "should set on get" do
+              expect(attributes_test.with_default_no_init).to eql('foo')
+            end
+          end
+
+          context "set to a symbol for a method" do
+            before(:each) do
+              AttributesTest.send(:define_method, :default_method) do
+                Date.today
+              end
+
+              AttributesTest.create_attribute_methods([:with_default_method], {:default => :default_method})
+            end
+            let(:attributes_test) { AttributesTest.new() }
+
+            it { expect(attributes_test.with_default_method).to eql(Date.today) }
+          end
+
+          context "set to a non-method symbol" do
+            before(:each) do
+              AttributesTest.create_attribute_methods([:with_default_sym], {:default => :_foo})
+            end
+
+            let(:attributes_test) { AttributesTest.new() }
+
+            it { expect(attributes_test.with_default_sym).to eql(:_foo) }
+          end
+        end
+
+        context "with on_set" do
+          before(:each) do
+            AttributesTest.create_attribute_methods([:with_on_set], {:on_set => lambda {|obj,val| val.to_i } })
+          end
+
+          let(:attributes_test) { AttributesTest.new(:with_on_set => "1") }
+
+          it {expect(attributes_test.with_on_set).to eql(1)}
+        end
+
+        context "with allow_blank == false" do
+          before(:each) do
+            AttributesTest.create_attribute_methods([:prevent_blank], {:allow_blank =>  false})
+          end
+
+          let(:attributes_test) { AttributesTest.new(:prevent_blank => "") }
+
+          it "should not initialize" do
+            expect(attributes_test.attributes).to_not have_key(:prevent_blank)
+          end
+
+          it "should allow setting with non-blank value" do
+            attributes_test.prevent_blank = "not blank"
+            expect(attributes_test.prevent_blank).to eql("not blank")
+            attributes_test.prevent_blank = nil
+            expect(attributes_test.prevent_blank).to eql("not blank")
+            attributes_test.prevent_blank = 1
+            expect(attributes_test.prevent_blank).to eql(1)
+          end
+        end
+
+        context "with allow_blank == false and boolean == true" do
+          before(:each) do
+            AttributesTest.create_attribute_methods([:allow_false_boolean], {:allow_blank => false, :boolean => true})
+          end
+          let(:attributes_test) { AttributesTest.new(:allow_false_boolean => "") }
+
+          it "should not initialize" do
+            expect(attributes_test.attributes).to_not have_key(:allow_false_boolean)
+          end
+
+          it "should allow setting with non-blank value" do
+            attributes_test.allow_false_boolean = 1
+            expect(attributes_test.allow_false_boolean).to eql(1)
+            attributes_test.allow_false_boolean = nil
+            expect(attributes_test.allow_false_boolean).to eql(1)
+            attributes_test.allow_false_boolean = false
+            expect(attributes_test.allow_false_boolean).to eql(false)
+          end
+        end
+
+        context "with :if" do
+          context "set to a proc" do
+            before(:each) do
+              AttributesTest.has_date :if_proc, :if => lambda {|obj,val| !val.blank?}
+            end
+
+            it {expect(AttributesTest.new(:if_proc => nil)).to_not be_initialized(:if_proc)}
+
+            it {expect(AttributesTest.new(:if_proc => "2014-05-01")).to be_initialized(:if_proc)}
+          end
+
+          context "set to a :blank" do
+            before(:each) do
+              AttributesTest.has_attribute :if_blank, :if => :blank
+            end
+            it "init" do
+              init = AttributesTest.new(:if_blank => "")
+              expect(init).to be_initialized(:if_blank)
+
+            end
+            it {expect(AttributesTest.new(:if_blank => nil)).to be_initialized(:if_blank)}
+            it {expect(AttributesTest.new(:if_blank => "foo")).to_not be_initialized(:if_blank)}
+
+          end
+
+          context "set to a symbol" do
+            before(:each) do
+              AttributesTest.has_attribute :if_attr_1, :if => :if_true
+              AttributesTest.has_attribute :if_attr_2, :if => :if_false
+
+              AttributesTest.send :define_method, :if_true do
+                true
+              end
+
+              AttributesTest.send :define_method, :if_false do
+                false
+              end
+            end
+
+            let(:attributes_test) { AttributesTest.new(:if_attr_1 => "test", :if_attr_2 => "test" ) }
+            it {expect(attributes_test).to be_initialized(:if_attr_1)}
+            it {expect(attributes_test).to_not be_initialized(:if_attr_2)}
+          end
+        end
+
+        context "with :unless" do
+          context "set to a proc" do
+            before(:each) do
+              AttributesTest.has_date :unless_proc, :unless => lambda {|obj,val| val.blank?}
+            end
+
+            it {expect(AttributesTest.new(:unless_proc => nil)).to_not be_initialized(:unless_proc)}
+
+            it {expect(AttributesTest.new(:unless_proc => "2014-05-01")).to be_initialized(:unless_proc)}
+          end
+
+          context "set to a :blank" do
+            before(:each) do
+              AttributesTest.has_attribute :unless_blank, :unless => :blank
+            end
+
+            it {expect(AttributesTest.new(:unless_blank => "")).to_not be_initialized(:unless_blank)}
+            it {expect(AttributesTest.new(:unless_blank => nil)).to_not be_initialized(:unless_blank)}
+            it {expect(AttributesTest.new(:unless_blank => "foo")).to be_initialized(:unless_blank)}
+
+          end
+
+          context "set to a symbol" do
+            before(:each) do
+              AttributesTest.has_attribute :unless_attr_1, :unless => :unless_true
+              AttributesTest.has_attribute :unless_attr_2, :unless => :unless_false
+
+              AttributesTest.send :define_method, :unless_true do
+                true
+              end
+
+              AttributesTest.send :define_method, :unless_false do
+                false
+              end
+            end
+
+            let(:attributes_test) { AttributesTest.new(:unless_attr_1 => "test", :unless_attr_2 => "test" ) }
+            it {expect(attributes_test).to_not be_initialized(:unless_attr_1)}
+            it {expect(attributes_test).to be_initialized(:unless_attr_2)}
+          end
+        end
+      end # end with options
+    end # end #create_attribute_methods
+
+    describe '#has_attribute' do
+      it {expect(AttributesTest).to respond_to(:has_attribute)}
+
+      before(:each) do
+        AttributesTest.has_attribute(:test_attr)
+      end
+
+      let(:attributes_test) { AttributesTest.new() }
+
+      it {expect(attributes_test).to respond_to(:test_attr)}
+
     end
+
+    describe '#has_boolean' do
+      it {expect(AttributesTest).to respond_to(:has_boolean)}
+
+      before(:each) do
+        AttributesTest.has_boolean(:test_bool)
+      end
+      let(:attributes_test) { AttributesTest.new() }
+
+      it {expect(attributes_test).to respond_to(:test_bool)}
+
+      it "should cast to a boolean" do
+        attributes_test.test_bool = "false"
+        expect(attributes_test.test_bool).to eql(false)
+
+        attributes_test.test_bool = "true"
+        expect(attributes_test.test_bool).to eql(true)
+      end
+    end
+
+    describe '#has_date' do
+      it {expect(AttributesTest).to respond_to(:has_date)}
+
+      before(:each) do
+        AttributesTest.has_date(:test_date)
+      end
+
+      let(:attributes_test) { AttributesTest.new() }
+
+      it {expect(attributes_test).to respond_to(:test_date)}
+
+      it "should cast to a date" do
+        attributes_test.test_date = "2014-12-22"
+        expect(attributes_test.test_date).to be_a(Date)
+      end
+    end
+
+    describe '#has_decimal' do
+      it {expect(AttributesTest).to respond_to(:has_decimal)}
+
+      before(:each) do
+        AttributesTest.has_decimal(:test_deci)
+      end
+
+      let(:attributes_test) { AttributesTest.new() }
+
+      it {expect(attributes_test).to respond_to(:test_deci)}
+
+      it "should cast to a decimal" do
+        attributes_test.test_deci = "1.0"
+        expect(attributes_test.test_deci).to be_a(BigDecimal)
+      end
+    end
+
+    describe '#has_float' do
+      it {expect(AttributesTest).to respond_to(:has_float)}
+
+      before(:each) do
+        AttributesTest.has_float(:test_float)
+      end
+
+      let(:attributes_test) { AttributesTest.new() }
+
+      it {expect(attributes_test).to respond_to(:test_float)}
+
+      it "should cast to a float" do
+        attributes_test.test_float = "1.0"
+        expect(attributes_test.test_float).to be_a(Float)
+      end
+    end
+
+    describe '#has_int' do
+      it {expect(AttributesTest).to respond_to(:has_int)}
+
+      before(:each) do
+        AttributesTest.has_int(:test_int)
+      end
+
+      let(:attributes_test) { AttributesTest.new() }
+
+      it {expect(attributes_test).to respond_to(:test_int)}
+
+      it "should cast to a float" do
+        attributes_test.test_int = "1"
+        expect(attributes_test.test_int).to be_a(Fixnum)
+      end
+    end
+
+    describe '#has_time' do
+      it {expect(AttributesTest).to respond_to(:has_time)}
+
+      before(:each) do
+        AttributesTest.has_time(:test_time)
+      end
+
+      let(:attributes_test) { AttributesTest.new() }
+
+      it {expect(attributes_test).to respond_to(:test_time)}
+
+      it "should cast to a date" do
+        attributes_test.test_time = "2014-12-22"
+        expect(attributes_test.test_time).to be_a(Time)
+      end
+    end
+
+    describe '#alias_attribute' do
+      before(:each) do
+        AttributesTest.has_attribute :base_foo
+        AttributesTest.alias_attribute :alias_foo, :base_foo
+      end
+
+      context "attribute is not defined" do
+        it { expect {AttributesTest.alias_attribute :alias_foo, :nope}.to raise_error(SimpleModel::UndefinedAttribute) }
+      end
+
+      it "should work" do
+        test_alias = AttributesTest.new(:alias_foo => "foo")
+        expect(test_alias.alias_foo).to eql("foo")
+        expect(test_alias.base_foo).to eql("foo")
+      end
+    end
+
+  end # end class methods
+
+
+
+  context "initializing" do
 
     before(:each) do
-      @default = TestDefault.new
+      AttributesTest.has_attributes :test1,:test2
     end
 
-    it "should define setter method" do
-      @default.respond_to?(:foo=).should eql(true)
+    let(:init_test) { AttributesTest.new(:test1 => '1', :test2 => '2') }
+
+
+    it { expect(init_test.test1).to eql('1') }
+    it { expect(init_test.test2).to eql('2') }
+
+    describe '#attributes' do
+      it { expect(init_test).to respond_to(:attributes) }
+      it { expect(init_test.attributes).to be_a(HashWithIndifferentAccess)}
     end
 
-    it "should define reader/getter method" do
-      @default.respond_to?(:foo).should eql(true)
-    end
 
-    context ':initialize => false' do
-      it "should not initialize with the default value" do
-        @default.attributes[:tip].should be_nil
-        @default.tip.should eql("2")
+
+    describe '#before_initialize' do
+
+      context "before_initialize is not a Proc" do
+        it { expect {AttributesTest.before_initialize = "bad stuff"}.to raise_error }
       end
-      context "allow_blank => false"do
-        it "should not initialize, but should set the value on get" do
-          @default.attributes[:tip].should be_nil
-          @default.tip.should eql("2")
-        end
+
+      before(:each) do
+        # Do not initialize blank attributes
+        AttributesTest.before_initialize = lambda {|obj,attrs| attrs.select{|k,v| !v.blank?}}
+        AttributesTest.has_attribute :before_init
+      end
+
+      it "should work" do
+        expect(AttributesTest.new(:before_init => "")).to_not be_initialized(:before_init)
+        expect(AttributesTest.new(:before_init => "t")).to be_initialized(:before_init)
+      end
+
+    end
+
+    describe '#after_initialize' do
+
+      context "before_initialize is not a Proc" do
+        it { expect {AttributesTest.after_initialize = "bad stuff"}.to raise_error }
+      end
+
+      before(:each) do
+        # Do not initialize blank attributes
+        AttributesTest.after_initialize = lambda { |obj| obj.after_init = "test" if obj.after_init.blank?}
+        AttributesTest.has_attribute :after_init
+      end
+
+      it "should work" do
+        expect(AttributesTest.new(:after_init => "").after_init).to eql("test")
+      end
+
+    end
+
+    describe '#new_with_store'do
+      it "should work" do
+        my_store = {:test1 => 1,:test2 => 2}
+        nw = AttributesTest.new_with_store(my_store)
+        expect(AttributesTest.new_with_store(my_store).attributes.object_id).to eql(my_store.object_id)
       end
     end
 
-    it "should call the method it describe by the default value if it exists" do
-      @default.attributes[:bar].should eql("bar")
-    end
-
-    it "should set the default to the supplied symbol, if the method does not exist" do
-      @default.attributes[:fab].should eql(:some_symbol)
-    end
-
-    it "should allow default value to be an empty array" do
-      @default.my_array.should eql([])
-    end
-
-    it "should create a boolean? method for each attribute" do
-      @default.respond_to?(:foo?).should eql(true)
-    end
-
-    it "should return !blank?" do
-      @default.my_array.should eql([]) # blank array
-      @default.my_array?.should eql(false)
-      @default.my_array << 1
-      @default.my_array?.should eql(true)
-    end
-
-    it "should not allow blank if set" do
-      @default.foo.should eql("foo")
-      @default.foo = ""
-      @default.foo.should eql("foo")
-      @default.foo = "not blank"
-      @default.foo.should eql("not blank")
-    end
-
-    it "should try for the default if its blank on get" do
-      @default.hop.blank?.should eql(true)
-      @default.nap = "yep"
-      @default.hop.should eql("hop")
-    end
   end
 
-  context 'number and date/time attributes' do
-    before(:all) do
-      class NumDateTime
-        include SimpleModel::Attributes
-        has_date :my_date
-        has_time :my_time
-        has_int :my_int
-        has_int :blank_int, :allow_blank => true
-        has_decimal :my_decimal
-        has_decimal :blank_decimal, :allow_blank => true
-        has_float :my_float
-        has_attribute :my_attr
-        has_boolean :my_boolean
-      end
-    end
-    context "default options for number attributes" do
-      context "set with blank value" do
-        it "should not initialize" do
-          num_date_time = NumDateTime.new(:my_date => nil, :my_time => "", :my_int => " ", :my_decimal => nil, :my_float => '')
-          expect(num_date_time.initialized?(:my_date)).to eql(false)
-          expect(num_date_time.initialized?(:my_time)).to eql(false)
-          expect(num_date_time.initialized?(:my_int)).to eql(false)
-          expect(num_date_time.initialized?(:my_decimal)).to eql(false)
-          expect(num_date_time.initialized?(:my_float)).to eql(false)
-        end
-      end
-      context "override to allow_blank" do
-        it "should not initialize" do
-          num_date_time = NumDateTime.new(:blank_int => nil, :blank_decimal => "")
-          expect(num_date_time.initialized?(:blank_int)).to eql(true)
-          expect(num_date_time.initialized?(:blank_decimal)).to eql(true)
-        end
+  context "inheritance" do
+    class MyBase
+      include SimpleModel::Attributes
+      has_boolean :bar
+      has_attribute :str, :stuff
+      has_currency :amount, :default => BigDecimal("0.0"), :initialize => false
+      has_dates :some, :thing, :default => :fetch_date, :allow_blank => false, :initialize => false
+      alias_attribute :other, :bar
+      alias_attribute :other_amount, :amount
+
+      def fetch_date
+        Date.today
       end
     end
 
-    context "set with blank value" do
-      it "should not initialize" do
-        num_date_time = NumDateTime.new(:my_attr => nil, :my_boolean => "")
-        expect(num_date_time.initialized?(:my_attr)).to eql(true)
-        expect(num_date_time.initialized?(:my_boolean)).to eql(true)
-      end
-    end
-  end
-
-  context 'options with conditional' do
-    before(:all) do
-      class WithConditional
-        include SimpleModel::Attributes
-        has_date :my_date, :if => lambda {|obj,val| !val.blank?}
-        has_date :my_other_date, :unless => :blank
-      end
-    end
-    it "should not raise error" do
-      new = WithConditional.new(:my_date => nil)
-      new.initialized?(:my_date).should eql(false)
+    class NewerBase < MyBase
+      has_boolean :foo
+      has_int :str
     end
 
-    it "should call blank on val if :blank is supplied" do
-      new = WithConditional.new(:my_other_date => nil)
-      new.initialized?(:my_other_date).should eql(false)
+    class NewestBase < NewerBase
+      alias_attribute :some_amount, :other_amount
     end
-  end
 
-  context "on get" do
-    it "should perform on_get when set" do
-      class OnGet
-        include SimpleModel::Attributes
-        has_attribute :foo, :on_get => lambda{|obj,attr| (attr.blank? ? obj.send(:foo_default) : attr)}
-
-        def foo_default
-          "test"
-        end
-      end
-
-      new = OnGet.new
-      new.foo.should eql("test")
-      new.foo = "foo"
-      new.foo.should eql("foo")
-    end
-  end
-
-  context 'if supplied value can be cast' do
-    before(:all) do
-      class TestAlias
-        include SimpleModel::Attributes
-        has_attribute :foo, :default => "bar"
-        alias_attribute(:bar,:foo)
-      end
-    end
-    context '#alias_attribute' do
-      it "should create alias for attribute" do
-        t = TestAlias.new(:bar => "foo")
-        t.bar.should eql("foo")
-        t.foo.should eql('foo')
-        t = TestAlias.new(:foo => "foo")
-        t.bar.should eql("foo")
-        t.foo.should eql('foo')
-      end
-    end
-  end
-
-  context "regression tests" do
-    before(:all) do
-      class MyBase
-        include SimpleModel::Attributes
-        has_boolean :bar
-        has_attribute :str, :stuff
-        has_currency :amount, :default => BigDecimal("0.0"), :initialize => false
-        has_dates :some, :thing, :default => :fetch_date, :allow_blank => false, :initialize => false
-        alias_attribute :other, :bar
-        alias_attribute :other_amount, :amount
-
-        def fetch_date
-          Date.today
-        end
-      end
-
-      class NewerBase < MyBase
-        has_boolean :foo
-        has_int :str
-      end
-
-      class NewestBase < NewerBase
-        alias_attribute :some_amount, :other_amount
-      end
-
-    end
     it "should merge defined attributes when class are inherited" do
-      NewerBase.attribute_defined?(:bar).should eql(true)
-      n = NewerBase.new
-      n.respond_to?(:bar_will_change!).should eql(true)
+      expect(NewerBase).to be_attribute_defined(:bar)
+      newer_base = NewerBase.new
+      expect(newer_base).to respond_to(:bar_will_change!)
     end
 
     it "should set defaults that were not initialized should work from parent class" do
-      n = NewerBase.new
-      n.some.should eql(n.send(:fetch_date))
-      n.thing.should eql(n.send(:fetch_date))
+      newer_base = NewerBase.new
+      expect(newer_base.some).to eql(newer_base.send(:fetch_date))
+      expect(newer_base.thing).to eql(newer_base.send(:fetch_date))
     end
 
     it "should allow redefining methods in child classes" do
-      n = NewerBase.new
-      n.str = '1'
-      n.str.should eql(1)
+      newer_base = NewerBase.new
+      newer_base.str = '1'
+      expect(newer_base.str).to eql(1)
     end
 
     it "should set attribute from alias" do
-      MyBase.new(:other => true).bar?.should eql(true)
-      NewerBase.new(:other => true).bar?.should eql(true)
+      expect(MyBase.new(:other => true)).to be_bar
+      expect(NewerBase.new(:other => true)).to be_bar
     end
 
     it "should properly alias attributes from parent class" do
-      nb =  NewestBase.new(:some_amount => 1.0)
-      nb.other_amount.should eql(1.0.to_d)
-      nb.amount.should eql(1.0.to_d)
-    end
-  end
-
-  after(:all) do
-    [:OnGet,:TestDefault,:TestInit,:MyBase,:NewerBase].each do |test_klass|
-      Object.send(:remove_const,test_klass) if defined?(test_klass)
+      newer_base =  NewestBase.new(:some_amount => 1.0)
+      expect(newer_base.other_amount).to eql(1.0.to_d)
+      expect(newer_base.amount).to eql(1.0.to_d)
     end
   end
 end
