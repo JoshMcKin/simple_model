@@ -25,9 +25,10 @@ module SimpleModel
 
     def initialize(*attrs)
       attrs = attrs.extract_options!
-      attrs = attributes_for_init(attrs)
       attrs = self.class.before_initialize.call(self,attrs) if self.class.before_initialize
       set(attrs)
+      defaults = default_attributes_for_init
+      set(defaults)
       self.class.after_initialize.call(self) if self.class.after_initialize
     end
 
@@ -123,25 +124,25 @@ module SimpleModel
 
     # Returns attribute that have defaults in a hash: {:attribute => "default value"}
     # Checks for alias attributes to ensure they are not overwritten
-    def attributes_for_init(attrs)
-      d = (attrs.is_a?(HashWithIndifferentAccess) ? attrs : attrs.with_indifferent_access )
-      self.class.defined_attributes.each do |k,v|
-        if allow_init_default?(d,k,v)
-          d[k] = fetch_default_value(v[:default])
+    def default_attributes_for_init
+      da = {}
+      self.class.defined_attributes.each do |attr,opts|
+        if allow_init_default?(attr,opts)
+          da[attr] = fetch_default_value(opts[:default])
         end
       end
-      d
+      da
     end
 
     # Only set default if there is a default value, initializing is allow and
     # new attributes do not have a value to set and
-    def allow_init_default?(d,k,v)
-      (v[:default] && v[:initialize] && (!d.key?(k) && !attributes_have_alias?(d,k)))
+    def allow_init_default?(attr,opts)
+      (opts[:default] && opts[:initialize] && !initialized?(attr) && !initialized_alias?(attr))
     end
 
-    def attributes_have_alias?(attrs,attr)
+    def initialized_alias?(attr)
       base_meth = self.class.alias_attributes.rassoc(attr.to_sym)
-      base_meth && attrs.key?(base_meth[0])
+      base_meth && attributes.key?(base_meth[0])
       #!(self.class.alias_attributes.select{ |a, m| (m == attr.to_sym && attrs.key?(a)) }).empty?
     end
 
@@ -201,7 +202,7 @@ module SimpleModel
       def new_with_store(session_hash)
         nw = self.new()
         nw.attributes = session_hash
-        nw.set(nw.send(:attributes_for_init,session_hash))
+        nw.set(nw.send(:default_attributes_for_init))
         nw
       end
 

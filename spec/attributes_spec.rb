@@ -445,6 +445,30 @@ describe SimpleModel::Attributes do
       end
     end
 
+    context "defaults" do
+      before(:each) do
+        AttributesTest.has_attribute :has_def, :default => "Test"
+        AttributesTest.has_attribute :has_other, :default => "Other"
+        AttributesTest.has_attribute :has_derived, :default => :default_derived
+
+        class AttributesTest
+          def default_derived
+            val = "Derived" if has_def == "Test"
+          end
+        end
+      end
+
+      let(:defaults_test) { AttributesTest.new(:has_other => 'Foo') }
+
+      it { expect(defaults_test.initialized?(:has_def)).to eql(true)}
+      it { expect(defaults_test.has_def).to eql("Test")}
+
+      it { expect(defaults_test.initialized?(:has_other)).to eql(true)}
+      it { expect(defaults_test.has_other).to eql("Foo")}
+
+      it { expect(defaults_test.initialized?(:has_derived)).to eql(true)}
+      it { expect(defaults_test.has_derived).to eql("Derived")}
+    end
   end
 
   context "inheritance" do
