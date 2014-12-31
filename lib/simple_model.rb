@@ -41,6 +41,7 @@ module SimpleModel
   require 'active_model'
   require "simple_model/extend_core"
   require 'simple_model/exceptions'
+  require 'simple_model/config'
   require "simple_model/attributes"
   require "simple_model/error_helpers"
   require "simple_model/validation"

@@ -19,6 +19,10 @@ describe SimpleModel::Attributes do
 
   context "class methods" do
 
+    describe '#config' do
+      it { expect(AttributesTest.config).to be_a(SimpleModel::Config) }
+    end
+
     describe '#create_attribute_methods' do
       context "no options" do
         before(:each) do
@@ -59,6 +63,15 @@ describe SimpleModel::Attributes do
 
             it "should work" do
               expect(attributes_test.attributes[:with_default]).to eql('foo')
+            end
+
+            context 'config.initialize_defaults? == false' do
+              it "should not initialize" do
+                AttributesTest.config.initialize_defaults = false
+                expect(attributes_test.attributes.key?(:with_default)).to eql(false)
+              end
+
+              it {expect(attributes_test.with_default).to eql('foo')}
             end
 
           end

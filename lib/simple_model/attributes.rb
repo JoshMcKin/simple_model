@@ -1,3 +1,4 @@
+require 'simple_model/config'
 module SimpleModel
   module Attributes
     include ExtendCore
@@ -27,8 +28,10 @@ module SimpleModel
       attrs = attrs.extract_options!
       attrs = self.class.before_initialize.call(self,attrs) if self.class.before_initialize
       set(attrs)
-      defaults = default_attributes_for_init
-      set(defaults)
+      if config.initialize_defaults?
+        defaults = default_attributes_for_init
+        set(defaults)
+      end
       self.class.after_initialize.call(self) if self.class.after_initialize
     end
 
@@ -174,7 +177,13 @@ module SimpleModel
       b
     end
 
+    def config
+      self.class.config
+    end
+
     module ClassMethods
+      attr_accessor :config
+
       AVAILABLE_ATTRIBUTE_METHODS.each do |method,method_options|
         define_method(method) do |*attributes|
           options = attributes.extract_options!
@@ -202,7 +211,7 @@ module SimpleModel
       def new_with_store(session_hash)
         nw = self.new()
         nw.attributes = session_hash
-        nw.set(nw.send(:default_attributes_for_init))
+        nw.set(nw.send(:default_attributes_for_init)) if config.initialize_defaults?
         nw
       end
 
@@ -226,12 +235,21 @@ module SimpleModel
         defined_attributes.key?(attr)
       end
 
+      # The current intent of the config is allow the managing of features at the global level and overrides options
+      # set at attribute definition, which may not be the most flexible and may require re-thinking for future options
+      # Options:
+      # * config.initialize_defaults default is true, if false prevents attributes with default values from auto-initializing
+      def config
+        @config ||= SimpleModel::Config.new
+      end
+
       # The default settings for a SimpeModel class
       # Options:
       # * :on_set - accepts a lambda that is run when an attribute is set
       # * :on_get - accepts a lambda that is run when you get/read an attribute
       # * :default - the default value for the attribute, can be a symbol that is sent for a method
-      # * :initialize - informations the object whether or not it should initialize the attribute with :default value, defaults to true
+      # * :initialize - informations the object whether or not it should initialize the attribute with :default value, defaults to true,
+      #                  and is overridden by config.initialzie_defaults
       # ** If :initialize is set to false you must set :allow_blank to false or it will never set the default value
       # * :allow_blank - when set to false, if an attributes value is blank attempts to set the default value, defaults to true
       def default_attribute_settings
@@ -349,6 +367,7 @@ module SimpleModel
       def inherited(base)
         base.defined_attributes = defined_attributes.merge(base.defined_attributes)
         base.alias_attributes = alias_attributes.merge(base.alias_attributes)
+        base.config ||= config.dup
         super
         # Rails 3.0 Hack
         if (ActiveModel::VERSION::MAJOR == 3 && ActiveModel::VERSION::MINOR < 1)
