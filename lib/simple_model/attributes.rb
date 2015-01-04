@@ -209,10 +209,7 @@ module SimpleModel
       #     end
       #
       def new_with_store(session_hash)
-        nw = self.new()
-        nw.attributes = session_hash
-        nw.set(nw.send(:default_attributes_for_init)) if config.initialize_defaults?
-        nw
+        self.new(:attributes => session_hash)
       end
 
       def alias_attributes
