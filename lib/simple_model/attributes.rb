@@ -367,7 +367,7 @@ module SimpleModel
       def inherited(base)
         base.defined_attributes = defined_attributes.merge(base.defined_attributes)
         base.alias_attributes = alias_attributes.merge(base.alias_attributes)
-        base.config ||= config.dup
+        base.config = config.dup
         super
         # Rails 3.0 Hack
         if (ActiveModel::VERSION::MAJOR == 3 && ActiveModel::VERSION::MINOR < 1)
