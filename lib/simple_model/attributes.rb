@@ -7,8 +7,7 @@ module SimpleModel
     include ActiveModel::Dirty
 
     DEFAULT_ATTRIBUTE_SETTINGS = {:attributes_method => :attributes,
-                                  :allow_blank => false,
-                                  :initialize => true
+                                  :allow_blank => false
                                   }.freeze
 
     AVAILABLE_ATTRIBUTE_METHODS = {
@@ -28,10 +27,8 @@ module SimpleModel
       attrs = attrs.extract_options!
       attrs = self.class.before_initialize.call(self,attrs) if self.class.before_initialize
       set(attrs)
-      if config.initialize_defaults?
-        defaults = default_attributes_for_init
-        set(defaults)
-      end
+      defaults = default_attributes_for_init
+      set(defaults)
       self.class.after_initialize.call(self) if self.class.after_initialize
     end
 
@@ -121,7 +118,7 @@ module SimpleModel
     end
 
     def fetch_default_value(arg)
-      return send(arg) if (arg.is_a?(Symbol) && self.respond_to?(arg))
+      return send(arg) if (arg.is_a?(Symbol) && respond_to?(arg))
       arg
     end
 
@@ -140,11 +137,11 @@ module SimpleModel
     # Only set default if there is a default value, initializing is allow and
     # new attributes do not have a value to set and
     def allow_init_default?(attr,opts)
-      (opts[:default] && opts[:initialize] && !initialized?(attr) && !initialized_alias?(attr))
+      ((opts.key?(:initialize) ? opts[:initialize] : config.initialize_defaults?) && opts[:default] && !initialized?(attr) && !initialized_alias?(attr))
     end
 
     def initialized_alias?(attr)
-      base_meth = self.class.alias_attributes.rassoc(attr.to_sym)
+      base_meth = self.class.alias_attributes.rassoc(attr)
       base_meth && attributes.key?(base_meth[0])
       #!(self.class.alias_attributes.select{ |a, m| (m == attr.to_sym && attrs.key?(a)) }).empty?
     end

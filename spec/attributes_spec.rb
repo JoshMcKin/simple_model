@@ -61,10 +61,10 @@ describe SimpleModel::Attributes do
               expect(attributes_test.attributes[:with_default]).to eql('foo')
             end
 
-            context 'config.initialize_defaults? == false' do
-              it "should not initialize" do
+            context 'should override config setting' do
+              it "should still work" do
                 AttributesTest.config.initialize_defaults = false
-                expect(attributes_test.attributes.key?(:with_default)).to eql(false)
+                expect(attributes_test.attributes.key?(:with_default)).to eql(true)
               end
 
               it {expect(attributes_test.with_default).to eql('foo')}
@@ -79,12 +79,19 @@ describe SimpleModel::Attributes do
 
             let(:attributes_test) { AttributesTest.new() }
 
-            it "should work" do
-              expect(attributes_test.attributes).to_not have_key(:with_default_no_init)
-            end
+            it { expect(attributes_test.attributes).to_not have_key(:with_default_no_init) }
 
             it "should set on get" do
               expect(attributes_test.with_default_no_init).to eql('foo')
+            end
+
+            context 'config.initialize_defaults? == false' do
+              
+              it "should override config setting" do
+                AttributesTest.config.initialize_defaults = true
+                expect(attributes_test.attributes.key?(:with_default)).to eql(false)
+              end
+
             end
           end
 
@@ -456,6 +463,7 @@ describe SimpleModel::Attributes do
 
     context "defaults" do
       before(:each) do
+        AttributesTest.config.initialize_defaults = true
         AttributesTest.has_attribute :has_def, :default => "Test"
         AttributesTest.has_attribute :has_other, :default => "Other"
         AttributesTest.has_attribute :has_derived, :default => :default_derived

@@ -1,7 +1,7 @@
 module SimpleModel
   class Config
     DEFAULTS = {
-      :initialize_defaults => true
+      :initialize_defaults => false
     }
 
     attr_accessor :initialize_defaults
