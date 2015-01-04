@@ -1,9 +1,5 @@
 require 'spec_helper.rb'
 
-class AttributesTest
-  include SimpleModel::Attributes
-end
-
 describe SimpleModel::Attributes do
 
   # We need a clean class for each spec

@@ -216,7 +216,7 @@ module SimpleModel
       end
 
       def alias_attributes
-        @alias_attributes ||= HashWithIndifferentAccess.new
+        @alias_attributes ||= Hash.new
       end
 
       def alias_attributes=alias_attributes
@@ -224,7 +224,7 @@ module SimpleModel
       end
 
       def defined_attributes
-        @defined_attributes ||= HashWithIndifferentAccess.new
+        @defined_attributes ||= Hash.new
       end
 
       def defined_attributes=defined_attributes
@@ -232,7 +232,7 @@ module SimpleModel
       end
 
       def attribute_defined?(attr)
-        defined_attributes.key?(attr)
+        defined_attributes.key?(attr.to_sym)
       end
 
       # The current intent of the config is allow the managing of features at the global level and overrides options
