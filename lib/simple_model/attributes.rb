@@ -71,7 +71,7 @@ module SimpleModel
 
     def get_attribute(attr,opts=nil)
       opts ||= fetch_attribute_options(attr)
-      val = attributes[attr]
+      val = raw_attribute(attr)
       val = attributes[attr] ||= fetch_default_value(opts[:default]) unless skip_get_default?(attr,opts,val)
       if opts[:on_get]
         opts[:on_get].call(self,val)
@@ -101,6 +101,10 @@ module SimpleModel
     # Rails 3.2 + required when searching for attributes in from inherited classes/models
     def attribute(attr)
       get_attribute(attr)
+    end
+
+    def raw_attribute(attr)
+      attributes[attr]
     end
 
     private
