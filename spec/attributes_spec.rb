@@ -86,7 +86,7 @@ describe SimpleModel::Attributes do
             end
 
             context 'config.initialize_defaults? == false' do
-              
+
               it "should override config setting" do
                 AttributesTest.config.initialize_defaults = true
                 expect(attributes_test.attributes.key?(:with_default)).to eql(false)
@@ -539,6 +539,30 @@ describe SimpleModel::Attributes do
       newer_base =  NewestBase.new(:some_amount => 1.0)
       expect(newer_base.other_amount).to eql(1.0.to_d)
       expect(newer_base.amount).to eql(1.0.to_d)
+    end
+  end
+  context 'REGRESSION' do
+    context 'default is an array that is not initialized (ONlY FAILS IN RAILS ~> 3.0)' do
+      before(:each) do
+        class InitArray < SimpleModel::Base
+          has_attribute :conditions, :default => :new_array
+          
+          def new_array
+            [[]]
+          end
+
+          def add_one
+            conditions << 1
+          end
+        end
+      end
+
+      it "should not rest amount to default" do
+        test_array = InitArray.new
+        expect(test_array).to_not be_initialized(:conditions)
+        test_array.add_one
+        expect(test_array.conditions).to eql([[],1])
+      end
     end
   end
 end

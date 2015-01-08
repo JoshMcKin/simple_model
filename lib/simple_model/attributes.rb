@@ -69,15 +69,14 @@ module SimpleModel
       end
     end
 
+     # TODO: Returning just val in Rails 3 causes weird issue where if value is an array the array is reset, 
+     # revert to return to just val when Rails 3 support is dropped to improve performance
     def get_attribute(attr,opts=nil)
       opts ||= fetch_attribute_options(attr)
       val = raw_attribute(attr)
-      val = attributes[attr] ||= fetch_default_value(opts[:default]) unless skip_get_default?(attr,opts,val)
-      if opts[:on_get]
-        opts[:on_get].call(self,val)
-      else
-        val
-      end
+      val = attributes[attr] = fetch_default_value(opts[:default]) unless skip_get_default?(attr,opts,val)
+      opts[:on_get].call(self,val) if opts[:on_get]
+      raw_attribute(attr)
     end
 
     def fetch_attribute_options(attr)
