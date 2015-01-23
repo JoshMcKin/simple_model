@@ -12,7 +12,7 @@ module SimpleModel
     AVAILABLE_ATTRIBUTE_METHODS = {
       :has_attribute => {:alias => :has_attributes, :options => {:allow_blank => true}},
       :has_boolean  => {:cast_to => :to_b, :alias => :has_booleans, :options =>  {:allow_blank => true, :boolean => true}},
-      :has_currency => {:cast_to => :to_d, :alias => :has_currencies},
+      :has_currency => {:cast_to => :to_d, :alias => :has_decimals},
       :has_date => {:cast_to => :to_date, :alias => :has_dates} ,
       :has_decimal  => {:cast_to => :to_d, :alias => :has_decimals},
       :has_float => {:cast_to => :to_f, :alias => :has_floats},
@@ -73,8 +73,8 @@ module SimpleModel
           val = opts[:on_set].call(self,val) if opts.has_key?(:on_set)
           send("#{attr}_will_change!") if initialized?(attr) && val != attributes[attr_key]
           attributes[attr_key] = val
-          opts[:after_set].call(self,val) if opts.has_key?(:after_set)
         end
+        val
       end
     end
 
@@ -86,8 +86,6 @@ module SimpleModel
       val = attributes[attr_key]
       attributes[attr_key] = fetch_default_value(opts[:default]) unless skip_get_default?(attr,opts,val)
       val = attributes[attr_key]
-      opts[:on_get].call(self,val) if opts.has_key?(:on_get)
-      val
     end
 
     def fetch_attribute_options(attr)
