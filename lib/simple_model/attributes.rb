@@ -1,4 +1,3 @@
-require 'simple_model/config'
 module SimpleModel
   module Attributes
     include ExtendCore
@@ -21,8 +20,6 @@ module SimpleModel
       :has_time => {:cast_to => :to_time, :alias => :has_times}
     }.freeze
 
-    attr_accessor :attributes
-
     def initialize(*attrs)
       attrs = attrs.extract_options!
       attrs = self.class.before_initialize.call(self,attrs) if self.class.before_initialize
@@ -33,12 +30,23 @@ module SimpleModel
     end
 
     def attributes
-      @attributes ||= HashWithIndifferentAccess.new
+      @attributes ||= new_attribute_store
+    end
+
+    def attributes=attrs
+      if attrs.class.name == "Hash"
+        if config.attributes_store == :symbol
+          attrs.symbolize_keys!
+        else
+          attrs.stringify_keys!
+        end
+      end
+      @attributes = attrs 
     end
 
     # Returns true if attribute has been initialized
     def initialized?(attr)
-      attributes.key?(attr)
+      attributes.has_key?(to_attr_key(attr))
     end
 
     def get(attr)
@@ -57,26 +65,29 @@ module SimpleModel
 
     def set_attribute(attr,val,opts=nil)
       opts ||= fetch_attribute_options(attr)
+      attr_key = to_attr_key(attr)
       if allow_attribute_action?(val,opts)
-        allow_blank = opts[:allow_blank]
-        val = fetch_default_value(opts[:default]) unless skip_set_default?(attr,opts,val)
-        unless (opts[:boolean] ? (!allow_blank && val.blank? && (val != false)) : (!allow_blank && val.blank?))
-          val = opts[:on_set].call(self,val) if opts.key?(:on_set)
-          send("#{attr}_will_change!") if (initialized?(attr) && val != attributes[attr])
-          attributes[attr] = val
-          opts[:after_set].call(self,val) if opts[:after_set]
+        ab = opts[:allow_blank]
+        val = fetch_default_value(opts[:default]) unless skip_set_default?(attr,opts,val,ab)
+        unless (opts[:boolean] ? (!ab && val.blank? && (val != false)) : (!ab && val.blank?))
+          val = opts[:on_set].call(self,val) if opts.has_key?(:on_set)
+          send("#{attr}_will_change!") if initialized?(attr) && val != attributes[attr_key]
+          attributes[attr_key] = val
+          opts[:after_set].call(self,val) if opts.has_key?(:after_set)
         end
       end
     end
 
-     # TODO: Returning just val in Rails 3 causes weird issue where if value is an array the array is reset, 
-     # revert to return to just val when Rails 3 support is dropped to improve performance
+    # TODO: Returning just val in Rails 3 HashWithIndifferentAccess causes weird issue where if value is an array the array is reset,
+    # revert to return to just val when Rails 3 support is dropped to improve performance
     def get_attribute(attr,opts=nil)
       opts ||= fetch_attribute_options(attr)
-      val = raw_attribute(attr)
-      val = attributes[attr] = fetch_default_value(opts[:default]) unless skip_get_default?(attr,opts,val)
-      opts[:on_get].call(self,val) if opts[:on_get]
-      raw_attribute(attr)
+      attr_key = to_attr_key(attr)
+      val = attributes[attr_key]
+      attributes[attr_key] = fetch_default_value(opts[:default]) unless skip_get_default?(attr,opts,val)
+      val = attributes[attr_key]
+      opts[:on_get].call(self,val) if opts.has_key?(:on_get)
+      val
     end
 
     def fetch_attribute_options(attr)
@@ -84,7 +95,7 @@ module SimpleModel
     end
 
     def get_attribute?(attr)
-      return false unless val = send(attr)
+      return false unless val = get_attribute(attr)
       if val.respond_to?(:blank?)
         return !val.blank?
       elsif val.respond_to?(:to_b)
@@ -103,25 +114,54 @@ module SimpleModel
     end
 
     def raw_attribute(attr)
-      attributes[attr]
+      attributes[to_attr_key(attr)]
+    end
+
+    def set_raw_attribute(attr,val)
+      attributes[to_attr_key(attr)] = val
+    end
+
+    def delete_attributes(*attrs)
+      clear_attribute_changes(attrs) if respond_to?(:clear_attribute_changes,true) # Rails 4.2 +
+      attrs.each do |attr|
+        attributes.delete(to_attr_key(attr))
+      end
+    end
+    alias :delete_attribute :delete_attributes
+
+    def reset_attributes
+      @attributes = new_attribute_store
     end
 
     private
 
-    def skip_get_default?(attr,opts,val)
-      (val || !opts.key?(:default) || (opts[:boolean] && (val == false)))
+    def new_attribute_store
+      (config.attributes_store == :indifferent ? HashWithIndifferentAccess.new : Hash.new)
     end
 
-    def skip_set_default?(attr,opts,val)
-      return true if (!opts.key?(:default) ||
+    def to_attr_key(attr)
+      @_attr_cast ||= config.attibutes_store_cast
+      attr.send(@_attr_cast)
+    end
+
+    def new_attibutes_store(attrs=nil)
+      config.attibutes_store_class.new(attrs)
+    end
+
+    def skip_get_default?(attr,opts,val)
+      (val || !opts.has_key?(:default) || (opts[:boolean] && (val == false)))
+    end
+
+    def skip_set_default?(attr,opts,val,ab=true)
+      return true if (!opts.has_key?(:default) ||
                       initialized?(attr) ||
                       (opts[:boolean] && (val == false)))
       blnk = val.blank?
-      (!blnk || (blnk && opts[:allow_blank]))
+      (!blnk || (blnk && ab))
     end
 
     def fetch_default_value(arg)
-      return send(arg) if (arg.is_a?(Symbol) && respond_to?(arg))
+      return send(arg) if (arg.is_a?(Symbol) && respond_to?(arg,true))
       arg
     end
 
@@ -140,18 +180,18 @@ module SimpleModel
     # Only set default if there is a default value, initializing is allow and
     # new attributes do not have a value to set and
     def allow_init_default?(attr,opts)
-      ((opts.key?(:initialize) ? opts[:initialize] : config.initialize_defaults?) && opts[:default] && !initialized?(attr) && !initialized_alias?(attr))
+      (opts.has_key?(:default) && (opts.has_key?(:initialize) ? opts[:initialize] : config.initialize_defaults?) && !initialized?(attr) && !initialized_alias?(attr))
     end
 
     def initialized_alias?(attr)
       base_meth = self.class.alias_attributes.rassoc(attr)
-      base_meth && attributes.key?(base_meth[0])
-      #!(self.class.alias_attributes.select{ |a, m| (m == attr.to_sym && attrs.key?(a)) }).empty?
+      base_meth && attributes.has_key?(base_meth[0])
     end
 
     def allow_attribute_action?(val,options)
-      return true unless (options[:if] || options[:unless])
+      return true unless (options.has_key?(:if) || options.has_key?(:unless))
       b = true
+      opt = nil
       if opt = options[:if]
         if opt.is_a?(Symbol)
           if opt == :blank
@@ -229,7 +269,7 @@ module SimpleModel
       end
 
       def attribute_defined?(attr)
-        defined_attributes.key?(attr.to_sym)
+        defined_attributes.has_key?(attr.to_sym)
       end
 
       # The current intent of the config is allow the managing of features at the global level and overrides options
@@ -237,7 +277,7 @@ module SimpleModel
       # Options:
       # * config.initialize_defaults default is true, if false prevents attributes with default values from auto-initializing
       def config
-        @config ||= SimpleModel::Config.new
+        @config ||= (superclass.respond_to?(:config) ? superclass.config.dup : SimpleModel.config.dup)
       end
 
       # The default settings for a SimpeModel class
@@ -274,9 +314,9 @@ module SimpleModel
       end
 
       # builds the setter and getter methods
-      def create_attribute_methods(attributes,options)
-        unless attributes.blank?
-          attributes.each do |attr|
+      def create_attribute_methods(attrs,options)
+        unless attrs.blank?
+          attrs.each do |attr|
             define_setter_with_options(attr,options)
             define_reader_with_options(attr,options)
             add_defined_attribute(attr,options)
@@ -364,7 +404,6 @@ module SimpleModel
       def inherited(base)
         base.defined_attributes = defined_attributes.merge(base.defined_attributes)
         base.alias_attributes = alias_attributes.merge(base.alias_attributes)
-        base.config = config.dup
         super
         # Rails 3.0 Hack
         if (ActiveModel::VERSION::MAJOR == 3 && ActiveModel::VERSION::MINOR < 1)

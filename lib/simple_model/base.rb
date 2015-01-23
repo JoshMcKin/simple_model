@@ -15,6 +15,8 @@ module SimpleModel
   require 'active_support/core_ext/module/introspection'
   require 'active_support/core_ext/object/duplicable'
   require 'active_support/core_ext/object/blank'
+  require 'simple_model/attributes/default_value_helpers'
+
 
   # == SimpleModel::Base
   #
@@ -75,6 +77,7 @@ module SimpleModel
   class Base
     include SimpleModel::Attributes
     include SimpleModel::ErrorHelpers
+    include SimpleModel::Attributes::DefaultValueHelpers
 
     define_model_callbacks :save, :update, :create, :destroy
 
