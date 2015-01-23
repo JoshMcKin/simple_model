@@ -1,5 +1,4 @@
 require 'spec_helper.rb'
-
 describe SimpleModel::Attributes do
 
   # We need a clean class for each spec
@@ -58,13 +57,13 @@ describe SimpleModel::Attributes do
             let(:attributes_test) { AttributesTest.new() }
 
             it "should work" do
-              expect(attributes_test.attributes[:with_default]).to eql('foo')
+              expect(attributes_test.raw_attribute(:with_default)).to eql('foo')
             end
 
             context 'should override config setting' do
               it "should still work" do
                 AttributesTest.config.initialize_defaults = false
-                expect(attributes_test.attributes.key?(:with_default)).to eql(true)
+                expect(attributes_test.initialized?(:with_default)).to eql(true)
               end
 
               it {expect(attributes_test.with_default).to eql('foo')}
@@ -395,7 +394,45 @@ describe SimpleModel::Attributes do
 
   end # end class methods
 
+  describe '#attributes' do
+    it { expect(AttributesTest.new).to respond_to(:attributes) }
+    it { expect(AttributesTest.new.attributes).to be_a(Hash)}
+    context "set hash with string keys" do
+      let(:attrs) do
+        {'test1' => '2', 'test2' => '2'}
+      end
+      let(:set_attrs) {AttributesTest.new(:attributes => attrs)}
+      it {expect(set_attrs.raw_attribute(:test1)).to eql('2')}
+      it {expect(set_attrs.raw_attribute('test1')).to eql('2')}
+    end
+    context "set hash with string keys" do
+      let(:attrs) do
+        {:test1 => '2', :test2 => '2'}
+      end
+      let(:set_attrs) {AttributesTest.new(:attributes => attrs)}
+      it {expect(set_attrs.raw_attribute(:test1)).to eql('2')}
+      it {expect(set_attrs.raw_attribute('test1')).to eql('2')}
+    end
+    context "set with HashWithIndifferentAccess" do
+      let(:attrs) do
+        {:test1 => '2', :test2 => '2'}.with_indifferent_access
+      end
+      let(:set_attrs) {AttributesTest.new(:attributes => attrs)}
+      it {expect(set_attrs.raw_attribute(:test1)).to eql('2')}
+      it {expect(set_attrs.raw_attribute('test1')).to eql('2')}
+    end
+  end
 
+  describe '#delete_attributes' do
+    it "should work" do
+      AttributesTest.has_attributes(:foo, :bar,:fred)
+      test_attr = AttributesTest.new(:foo => "foo", :bar => "bar", :fred => 'stone')
+      test_attr.delete_attributes(:foo, :bar)
+      expect(test_attr).to_not be_initialized(:foo)
+      expect(test_attr).to_not be_initialized(:bar)
+      expect(test_attr).to be_initialized(:fred)
+    end
+  end
 
   context "initializing" do
 
@@ -405,16 +442,8 @@ describe SimpleModel::Attributes do
 
     let(:init_test) { AttributesTest.new(:test1 => '1', :test2 => '2') }
 
-
     it { expect(init_test.test1).to eql('1') }
     it { expect(init_test.test2).to eql('2') }
-
-    describe '#attributes' do
-      it { expect(init_test).to respond_to(:attributes) }
-      it { expect(init_test.attributes).to be_a(HashWithIndifferentAccess)}
-    end
-
-
 
     describe '#before_initialize' do
 
@@ -545,8 +574,9 @@ describe SimpleModel::Attributes do
     context 'default is an array that is not initialized (ONlY FAILS IN RAILS ~> 3.0)' do
       before(:each) do
         class InitArray < SimpleModel::Base
+          self.config.attributes_store = :indifferent
           has_attribute :conditions, :default => :new_array
-          
+
           def new_array
             [[]]
           end
@@ -559,6 +589,7 @@ describe SimpleModel::Attributes do
 
       it "should not rest amount to default" do
         test_array = InitArray.new
+        expect(test_array.attributes).to be_a(HashWithIndifferentAccess)
         expect(test_array).to_not be_initialized(:conditions)
         test_array.add_one
         expect(test_array.conditions).to eql([[],1])

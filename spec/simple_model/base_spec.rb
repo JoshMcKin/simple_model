@@ -25,7 +25,7 @@ describe SimpleModel::Base do
         base_test = BaseTest.new()
 
         base_test.save
-        base_test.foo.should eql("test")
+        expect(base_test.foo).to eql("test")
       end
 
       it "should be false if validation fails" do
@@ -35,7 +35,6 @@ describe SimpleModel::Base do
         BaseTest.send(:define_method, :test) do
           return true
         end
-
 
         base_test = BaseTest.new()
         expect(base_test).to_not be_valid
@@ -137,6 +136,7 @@ describe SimpleModel::Base do
     before(:each) do
       class TestStuff < SimpleModel::Base
         has_attribute :bar
+        has_attribute :my_array, :default => :new_empty_array
         validates_presence_of :bar
       end
 
