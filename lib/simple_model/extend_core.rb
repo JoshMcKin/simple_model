@@ -40,11 +40,6 @@ module SimpleModel
         (((((self)*mulitplier).round).to_f)/mulitplier)
       end
 
-      # Returns a BigDecimal object rounded to the nearest hundredth
-      # Why decimal?..because precision matters when dealing with money ;)
-      def to_currency
-        self.to_d.round(2)
-      end
       
       def to_time
         Time.at(self)
@@ -120,8 +115,6 @@ module SimpleModel
       def to_d
         gsub(/[^0-9\.\+\-]/, '').core_to_d
       end
-      alias :to_currency :to_d
-
     end
 
     BigDecimal.class_eval do

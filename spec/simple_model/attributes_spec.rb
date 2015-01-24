@@ -522,7 +522,7 @@ describe SimpleModel::Attributes do
       include SimpleModel::Attributes
       has_boolean :bar
       has_attribute :str, :stuff
-      has_currency :amount, :default => BigDecimal("0.0"), :initialize => false
+      has_decimal :amount, :default => BigDecimal("0.0"), :initialize => false
       has_dates :some, :thing, :default => :fetch_date, :allow_blank => false, :initialize => false
       alias_attribute :other, :bar
       alias_attribute :other_amount, :amount

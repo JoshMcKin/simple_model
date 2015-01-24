@@ -89,10 +89,4 @@ describe SimpleModel::ExtendCore, 'String.rb' do
       it { expect("$5,000.006".to_f).to eql(5000.006) }
     end
   end
-
-  describe '#to_currency' do
-    context "contains non-numeric values" do
-      it { expect("$5,000.006".to_currency).to eql(BigDecimal("5000.006")) }
-    end
-  end
 end

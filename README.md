@@ -35,7 +35,6 @@ SimpleModel is available through [Rubygems](http://rubygems.org/gems/simple_mode
           # Attributes
           has_booleans :active, :default => true
           has_booleans :paid
-          has_currency :price, :default => 10.0.to_currency
           has_times :created_at, :default => :now
           has_attribute :my_array, :default => []
           
