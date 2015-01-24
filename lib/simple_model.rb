@@ -22,7 +22,6 @@ require 'simple_model/config'
 require "simple_model/attributes/default_value_helpers"
 require "simple_model/attributes"
 require "simple_model/error_helpers"
-require "simple_model/validation"
 require "simple_model/base"
 require 'simple_model/simple_model_railtie.rb' if defined?(Rails)
 
