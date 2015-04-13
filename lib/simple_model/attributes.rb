@@ -410,11 +410,6 @@ module SimpleModel
         base.defined_attributes = defined_attributes.merge(base.defined_attributes)
         base.alias_attributes = alias_attributes.merge(base.alias_attributes)
         super
-        # Rails 3.0 Hack
-        if (ActiveModel::VERSION::MAJOR == 3 && ActiveModel::VERSION::MINOR < 1)
-          base.attribute_method_suffix '_changed?', '_change', '_will_change!', '_was'
-          base.attribute_method_affix :prefix => 'reset_', :suffix => '!'
-        end
       end
     end # end ClassMethods
 
@@ -428,12 +423,6 @@ module SimpleModel
       base.extend ActiveModel::Naming
       base.extend ActiveModel::Callbacks
       base.send(:include, ActiveModel::Validations::Callbacks)
-
-      # Rails 3.0 Hack
-      if (ActiveModel::VERSION::MAJOR == 3 && ActiveModel::VERSION::MINOR < 1)
-        base.attribute_method_suffix '_changed?', '_change', '_will_change!', '_was'
-        base.attribute_method_affix :prefix => 'reset_', :suffix => '!'
-      end
     end
   end
 end
