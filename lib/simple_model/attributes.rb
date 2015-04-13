@@ -19,8 +19,8 @@ module SimpleModel
       :has_time => {:cast_to => :to_time, :alias => :has_times}
     }.freeze
 
-    def initialize(*attrs)
-      attrs = attrs.extract_options!
+    def initialize(attrs={})
+      attrs ||= {}
       attrs = self.class.before_initialize.call(self,attrs) if self.class.before_initialize
       set(attrs)
       defaults = default_attributes_for_init
@@ -69,11 +69,19 @@ module SimpleModel
         ab = opts[:allow_blank]
         val = fetch_default_value(opts[:default]) unless skip_set_default?(attr,opts,val,ab)
         unless (opts[:boolean] ? (!ab && val.blank? && (val != false)) : (!ab && val.blank?))
-          val = opts[:on_set].call(self,val) if opts.has_key?(:on_set)
+          val = process_on_set(opts[:on_set],val) if opts.has_key?(:on_set)
           send("#{attr}_will_change!") if initialized?(attr) && val != attributes[attr_key]
           attributes[attr_key] = val
         end
         val
+      end
+    end
+
+    def process_on_set(on_set,val)
+      if on_set.is_a?(Symbol)
+        val.__send__(on_set)
+      else
+        on_set.call(self,val)
       end
     end
 
@@ -226,8 +234,8 @@ module SimpleModel
           options = attributes.extract_options!
           options = method_options[:options].merge(options) if method_options[:options]
           options = default_attribute_settings.merge(options)
-          options[:on_set] = lambda {|obj,val| val.send(method_options[:cast_to]) } if method_options[:cast_to]
-          create_attribute_methods(attributes,options)
+          options[:on_set] = method_options[:cast_to] if method_options[:cast_to]
+          create_attribute_methods(attributes,options.freeze)
         end
         module_eval("alias #{method_options[:alias]} #{method}") if method_options[:alias]
       end
