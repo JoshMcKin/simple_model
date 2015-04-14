@@ -403,9 +403,6 @@ module SimpleModel
       end
 
       # Must inherit super's defined_attributes and alias_attributes
-      # Rails 3.0 does some weird stuff with ActiveModel::Dirty so we need a
-      # hack to keep things working when a class inherits from a super that
-      # has ActiveModel::Dirty included
       def inherited(base)
         base.defined_attributes = defined_attributes.merge(base.defined_attributes)
         base.alias_attributes = alias_attributes.merge(base.alias_attributes)
@@ -413,8 +410,6 @@ module SimpleModel
       end
     end # end ClassMethods
 
-    # Rails 3.0 does some weird stuff with ActiveModel::Dirty so we need a
-    # hack to keep things working when a class includes a module that has
     # ActiveModel::Dirty included
     def self.included(base)
       base.extend(Attributes::ClassMethods)
