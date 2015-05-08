@@ -40,7 +40,7 @@ module SimpleModel
           attrs.stringify_keys!
         end
       end
-      @attributes = attrs 
+      @attributes = attrs
     end
 
     # Returns true if attribute has been initialized
@@ -67,6 +67,7 @@ module SimpleModel
       attr_key = to_attr_key(attr)
       if allow_attribute_action?(val,opts)
         ab = opts[:allow_blank]
+
         val = fetch_default_value(opts[:default]) unless skip_set_default?(attr,opts,val,ab)
         unless (opts[:boolean] ? (!ab && val.blank? && (val != false)) : (!ab && val.blank?))
           val = process_on_set(opts[:on_set],val) if opts.has_key?(:on_set)
@@ -194,6 +195,7 @@ module SimpleModel
     end
 
     def allow_attribute_action?(val,options)
+      return false if !options[:boolean] && !options[:allow_blank] && val.blank?
       return true unless (options.has_key?(:if) || options.has_key?(:unless))
       b = true
       opt = nil
