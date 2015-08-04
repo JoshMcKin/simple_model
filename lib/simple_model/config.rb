@@ -2,7 +2,7 @@ module SimpleModel
   class Config
     DEFAULTS = {
       :initialize_defaults  => false,
-      :attributes_store     => :string # OPTIONS => :string, :symbol, :indifferent
+      :attributes_store     => (RUBY_VERSION =~ /^2.2/ ? :symbol : :string) # OPTIONS => :string, :symbol, :indifferent
     }.freeze
 
     ATTRIBUTE_STORES = {
