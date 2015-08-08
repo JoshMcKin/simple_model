@@ -229,7 +229,13 @@ module SimpleModel
     end
 
     module ClassMethods
-      attr_accessor :config
+      attr_writer :config,
+        :defined_attributes,
+        :alias_attributes,
+        :default_attribute_settings
+
+      attr_reader :before_initialize,
+        :after_initialize
 
       AVAILABLE_ATTRIBUTE_METHODS.each do |method,method_options|
         define_method(method) do |*attributes|
@@ -263,16 +269,8 @@ module SimpleModel
         @alias_attributes ||= Hash.new
       end
 
-      def alias_attributes=alias_attributes
-        @alias_attributes = alias_attributes
-      end
-
       def defined_attributes
         @defined_attributes ||= Hash.new
-      end
-
-      def defined_attributes=defined_attributes
-        @defined_attributes = defined_attributes
       end
 
       def attribute_defined?(attr)
@@ -298,10 +296,6 @@ module SimpleModel
       # * :allow_blank - when set to false, if an attributes value is blank attempts to set the default value, defaults to true
       def default_attribute_settings
         @default_attribute_settings ||= DEFAULT_ATTRIBUTE_SETTINGS
-      end
-
-      def default_attribute_settings=default_attribute_settings
-        @default_attribute_settings = default_attribute_settings
       end
 
       # We want to re-run define_attribute_methods since attributes are not all defined
@@ -335,6 +329,7 @@ module SimpleModel
         define_method(attr) do
           get_attribute(attr,options)
         end
+
         define_method("#{attr}?") do
           get_attribute?(attr)
         end
@@ -378,25 +373,12 @@ module SimpleModel
       # Expects an lambda that accept the object, the pending attributes hash and
       # should return a hash to be set
       # EX: lambda {|obj,attrs| attrs.select{|k,v| !v.blank?}}
-      def before_initialize
-        @before_initialize
-      end
-
-      # Expects an lambda that accept the object, the pending attributes hash and
-      # should return a hash to be set
-      # EX: lambda {|obj,attrs| attrs.select{|k,v| !v.blank?}}
       def before_initialize=before_initialize
         raise TypeError "before_initialize must be a lambda that accepts the attributes to be initialize" unless before_initialize.is_a?(Proc)
         @before_initialize = before_initialize
       end
 
       # A hook to perform actions after all attributes have been initialized
-      # Expects an lambda that accept the object and the pending attributes hash
-      # EX: lambda {|obj| puts "initialized"}
-      def after_initialize
-        @after_initialize
-      end
-
       # Expects an lambda that accept the object and the pending attributes hash
       # EX: lambda {|obj| puts "initialized"}
       def after_initialize=after_initialize
