@@ -83,6 +83,8 @@ module SimpleModel
 
     class << self
 
+      # a call back that runs after a call to save, update, create or destroy
+      # even if the action fails validation (helpful for extra logging)
       def after_any(meth=nil)
         @after_any = meth if meth
         @after_any

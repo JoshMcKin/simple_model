@@ -104,7 +104,6 @@ describe SimpleModel::Base do
           @log = "stuff"
         end
 
-
         def my_save_method
           true
         end
