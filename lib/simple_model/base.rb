@@ -83,6 +83,11 @@ module SimpleModel
 
     class << self
 
+      def after_any(meth=nil)
+        @after_any = meth if meth
+        @after_any
+      end
+      
       # Defines the model action's instance methods and applied defaults. For every
       # action defined, we also define that actions ! method which raises exceptions
       # when the action fails.
@@ -91,11 +96,14 @@ module SimpleModel
         actions = [action,"#{action}!".to_sym]
         actions.each do |a|
           define_method(a) do |opts = {}|
+            rslt = nil
             options = default_options.merge(opts)
             options[:raise_exception] = a.to_s.match(/\!$/)
             run_callbacks(action) do
-              run_model_action(methods,options)
+              rslt = run_model_action(methods,options)
             end
+            run_after_any
+            rslt
           end
         end
       end
@@ -125,6 +133,10 @@ module SimpleModel
     alias :saved? :persisted?
 
     private
+
+    def run_after_any
+      self.send(self.class.after_any) if self.class.after_any
+    end
 
     # Skeleton for action instance methods
     def run_model_action(methods,options)

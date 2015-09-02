@@ -94,11 +94,16 @@ describe SimpleModel::Base do
         save :my_save_method
         before_validation :set_foo
         after_validation :set_bar
-        attr_accessor :foo,:bar
+        attr_accessor :foo,:bar, :log
         validates :foo, :presence => true
-
+        after_any :log_stuff
 
         private
+
+        def log_stuff
+          @log = "stuff"
+        end
+
 
         def my_save_method
           true
@@ -125,9 +130,14 @@ describe SimpleModel::Base do
 
     it "should implement ActiveModel::Callbacks" do
       base_test.save
-
       expect(base_test.foo).to eql('foo')
       expect(base_test.bar).to eql('bar')
+    end
+
+    it "should run after any" do
+      allow(base_test).to receive(:foo).and_return(nil)
+      expect(base_test.save).to eql(false)
+      expect(base_test.log).to eql("stuff")
     end
   end
 
