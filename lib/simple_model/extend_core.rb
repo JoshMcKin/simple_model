@@ -53,9 +53,29 @@ module SimpleModel
     #Extend Ruby String.rb
     String.class_eval do
 
+      US_DATE_REGEX = (/(^[0-9]{1,2}[- \/.][0-9]{1,2}[- \/.][0-9]{4})/).freeze
+
+      JSON_DATE_REGEX = (/^(\/Date\().*(\)\/)$/).freeze
+
+      DIGIT_ONLY_REGEX = (/^+d$/).freeze
+
+      SPLIT_DATE_REGEX = (/\-|\/|\./).freeze
+
+      DATE_TR = ('/\/|\./').freeze
+
+      JSON_DATE_TR = ('/[a-zA-z\(\)\\\/]*/').freeze
+
+      EMPTY_STRING = ''.freeze
+
+      US_DATE_FORMAT = "%m-%d-%Y".freeze
+
+      ISO_DATE_FORMAT = "%Y-%m-%d".freeze
+
+      BOOLEAN_REGEX = (/^(true|t|yes|y|1)$/i).freeze
+
       # returns boolean value for common boolean string values
       def to_b
-        return true if self =~ (/^(true|t|yes|y|1)$/i)
+        return true if self =~ BOOLEAN_REGEX
         false
       end
 
@@ -69,20 +89,10 @@ module SimpleModel
       # * safe_date_string("\/Date(1310669017000)\/") # =>
       def safe_datetime_string
         safe_date = nil
-        if self[0..9] =~ (/^(0[1-9]|[1-9]|1[012])[- \/.]([1-9]|0[1-9]|[12][0-9]|3[01])[- \/.][0-9][0-9][0-9][0-9]/)
-          safe_date = ""
-          splt = split(/\-|\/|\./)
-          time = ""
-          if splt[2].length > 4
-            time = splt[2][4..(splt[2].length - 1)]
-            splt[2] = splt[2][0..3]
-          end
-          if splt.length == 3 && splt[2].length == 4
-            safe_date << "#{splt[2]}-#{splt[0]}-#{splt[1]}"
-            safe_date << "#{time}" unless time.nil? || time.to_s.length == 0
-          end
-        elsif self =~ /^\/Date\(/
-          safe_date = Time.at(((self.gsub(/(\/Date\()/,"")).gsub(/\)\/$/,"").to_i) / 1000).to_s
+        if self =~ US_DATE_REGEX
+          safe_date = us_date_to_iso_str
+        elsif self =~ JSON_DATE_REGEX
+          safe_date = json_date_to_time.to_s
         else
           safe_date = self
         end
@@ -92,28 +102,56 @@ module SimpleModel
       # Use safe_datetime_string help with those pesky US date formats in Ruby 1.9
       # or to change an integer string to date
       def to_date
-        return safe_datetime_string.to_i.to_date if self =~ /^+d$/
-        Date.parse(safe_datetime_string)
+        return self.to_i.to_date if self =~ DIGIT_ONLY_REGEX
+        if self =~ US_DATE_REGEX
+          Date.strptime(self.tr(DATE_TR,'-'), US_DATE_FORMAT)
+        elsif self =~ JSON_DATE_REGEX
+          json_date_to_time.to_date
+        else
+          Date.strptime(self.tr(DATE_TR,'-'), ISO_DATE_FORMAT)
+        end
       end
 
       # Use safe_datetime_string help with those pesky US date formats in Ruby 1.9
       # or to change an integer string to date
       def to_time
-        return safe_datetime_string.to_i.to_time if self =~ /^+d$/
-        Time.parse(safe_datetime_string)
+        return self.to_i.to_time if self =~ DIGIT_ONLY_REGEX
+        if self =~ US_DATE_REGEX
+          Time.parse(us_date_to_iso_str)
+        elsif  self =~ JSON_DATE_REGEX
+          json_date_to_time
+        else
+          Time.parse(self)
+        end
       end
 
       alias :core_to_f :to_f
 
+      SCRUB_NUMBER_REGEX = /[^0-9\.\+\-]/.freeze
+
       # Remove none numeric characters then run default ruby float cast
       def to_f
-        gsub(/[^0-9\.\+\-]/, '').core_to_f
+        gsub(SCRUB_NUMBER_REGEX, EMPTY_STRING).core_to_f
       end
 
       alias :core_to_d :to_d
 
       def to_d
-        gsub(/[^0-9\.\+\-]/, '').core_to_d
+        gsub(SCRUB_NUMBER_REGEX, EMPTY_STRING).core_to_d
+      end
+
+      private
+
+      def json_date_to_time
+        (Time.at(self.tr(JSON_DATE_TR,EMPTY_STRING).to_i / 1000))
+      end
+
+      def us_date_to_iso_str
+        date_split = split(US_DATE_REGEX)
+        time = date_split[2]
+        date = date_split[1]
+        date_split = date.split(SPLIT_DATE_REGEX)
+        "#{date_split[2]}-#{date_split[0]}-#{date_split[1]}#{time}"
       end
     end
 
@@ -124,6 +162,7 @@ module SimpleModel
         !zero?
       end
     end
+
     Fixnum.class_eval do
       include ToCurrencyS
 
